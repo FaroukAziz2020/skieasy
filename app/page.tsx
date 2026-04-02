@@ -1,10 +1,83 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
+const t = {
+  en: {
+    eyebrow: 'Door-to-door ski & snowboard service',
+    title1: 'Your gear,', title2: 'serviced &', title3: 'delivered.',
+    sub: 'We collect your skis or snowboard, bring them to a certified workshop, and return them to your door — sharp, waxed, and ready to ride.',
+    bookBtn: 'BOOK A PICKUP',
+    howLabel: 'Process', howTitle: 'How it', howTitleEm: 'works',
+    steps: [
+      { title: 'Book Online', desc: 'Fill in your details and choose your service. No account needed — takes 60 seconds.' },
+      { title: 'We Collect', desc: 'Our team picks up your equipment directly from your home or office.' },
+      { title: 'Expert Service', desc: 'Partner workshops tune your gear — wax, edge grind, full service.' },
+      { title: 'We Deliver', desc: 'Clean, sharp, and perfectly tuned — dropped back at your door.' },
+    ],
+    pricingLabel: 'Pricing', pricingTitle: "What's", pricingTitleEm: 'included',
+    popular: 'Most Popular',
+    fee: '+ pickup & delivery fee',
+    waxName: 'Wax Only', waxF: ['Hot wax treatment', 'Base cleaning', '24–48h turnaround'],
+    fullName: 'Full Service', fullF: ['Wax + edge tuning', 'Base repair (minor)', 'Binding check', '24–48h turnaround'],
+    edgeName: 'Edge Tuning', edgeF: ['Side & base edge grind', 'Deburring', '24–48h turnaround'],
+    cancelNote: 'Cancellation policy: Late cancellation (under 24h) or no-show may incur up to 50% of the service fee. We\'ll always reach out first.',
+    teamLabel: 'The people behind it', teamTitle: 'Our', teamTitleEm: 'team',
+    footerSub: 'Budapest · Hungary',
+    footer: '© 2025 SKIEASY-PEASY. All rights reserved.',
+    chatTitle: 'Skieasy Assistant', chatSub: 'Ask anything about our service',
+    chatWelcome: "Hi! I'm the SKIEASY-PEASY assistant ❄️ Ask me anything about our service, pricing, or pickup process.",
+    chatPlaceholder: 'Ask about pricing, timing…', chatSend: 'Send',
+    booked: '✅ Booking received! We\'ll confirm your pickup window shortly.',
+    demo: '⚠️ DEMO WEBSITE — NOT FOR SERVICE',
+    langBtn: '🇭🇺 HU',
+  },
+  hu: {
+    eyebrow: 'Háztól házig sífelszerelés-szerviz',
+    title1: 'A felszerelésed,', title2: 'karbantartva &', title3: 'visszahozva.',
+    sub: 'Összegyűjtjük a sílécedet vagy snowboardodat, elvisszük egy szakműhelybe, és visszahozzuk az ajtódhoz — éles, waxolt és menetkész.',
+    bookBtn: 'FOGLALJ FELVÉTELT',
+    howLabel: 'Folyamat', howTitle: 'Hogyan', howTitleEm: 'működik',
+    steps: [
+      { title: 'Foglalj Online', desc: 'Töltsd ki az adataidat és válaszd ki a szolgáltatást. Nincs szükség fiókra — 60 másodperc.' },
+      { title: 'Felvesszük', desc: 'Csapatunk elveszi a felszerelésed közvetlenül otthonodból vagy irodádból.' },
+      { title: 'Szakértői Szerviz', desc: 'Partnerműhelyeink beállítják a felszerelésed — wax, élezés, teljes szerviz.' },
+      { title: 'Visszaszállítjuk', desc: 'Tisztán, élesen és tökéletesen beállítva — visszahozzuk az ajtódhoz.' },
+    ],
+    pricingLabel: 'Árak', pricingTitle: 'Mi', pricingTitleEm: 'van benne',
+    popular: 'Legnépszerűbb',
+    fee: '+ felvétel & szállítási díj',
+    waxName: 'Csak Wax', waxF: ['Forró wax kezelés', 'Talp tisztítás', '24–48 óra átfutás'],
+    fullName: 'Teljes Szerviz', fullF: ['Wax + élezés', 'Kisebb talpjavítás', 'Kötés ellenőrzés', '24–48 óra átfutás'],
+    edgeName: 'Élezés', edgeF: ['Oldal- és talp élcsiszolás', 'Sorjátlanítás', '24–48 óra átfutás'],
+    cancelNote: 'Lemondási szabályzat: Késői lemondás (24 órán belül) vagy meg nem jelenés esetén a szolgáltatási díj 50%-a felszámítható. Mindig felvesszük veled a kapcsolatot.',
+    teamLabel: 'Az emberek mögötte', teamTitle: 'A mi', teamTitleEm: 'csapatunk',
+    footerSub: 'Budapest · Magyarország',
+    footer: '© 2025 SKIEASY-PEASY. Minden jog fenntartva.',
+    chatTitle: 'Skieasy Asszisztens', chatSub: 'Kérdezz bármit a szolgáltatásunkról',
+    chatWelcome: 'Szia! A SKIEASY-PEASY asszisztense vagyok ❄️ Kérdezz bármit a szolgáltatásunkról, árainkról vagy a felvételi folyamatról.',
+    chatPlaceholder: 'Kérdezz az árakról, időzítésről…', chatSend: 'Küldés',
+    booked: '✅ Foglalás megérkezett! Hamarosan megerősítjük a felvételi időpontot.',
+    demo: '⚠️ DEMO WEBOLDAL — NEM VALÓDI SZOLGÁLTATÁS',
+    langBtn: '🇬🇧 EN',
+  }
+};
+
 export default function Home() {
   const [chatOpen, setChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showBooked, setShowBooked] = useState(false);
+  const [lang, setLang] = useState<'en'|'hu'>('en');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('skieasy-lang');
+    if (saved === 'hu') setLang('hu');
+  }, []);
+
+  const switchLang = (l: 'en'|'hu') => {
+    setLang(l);
+    localStorage.setItem('skieasy-lang', l);
+  };
+  const tx = t[lang];
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('booked=1')) {
@@ -23,59 +96,60 @@ export default function Home() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap');
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-          --snow: #ffffff;
-          --snow2: #f0f7ff;
-          --snow3: #daeaf7;
-          --ice: #b8d9f0;
-          --blue: #4a9eca;
-          --blue-dark: #2271a3;
-          --text: #1a2e3d;
-          --text-mid: #4a6278;
-          --text-light: #8aaabb;
+          --snow: #ffffff; --snow2: #f0f7ff; --snow3: #daeaf7; --ice: #b8d9f0;
+          --blue: #4a9eca; --blue-dark: #2271a3;
+          --text: #1a2e3d; --text-mid: #4a6278; --text-light: #8aaabb;
         }
-
         html { scroll-behavior: smooth; }
         body { font-family: 'DM Sans', sans-serif; background: var(--snow); color: var(--text); overflow-x: hidden; }
 
-        .snowflakes { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-        .flake {
-          position: absolute; top: -20px; color: var(--ice);
-          animation: fall linear infinite; opacity: 0.55; user-select: none;
+        /* DEMO BANNER */
+        .demo-banner {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+          background: #f59e0b;
+          color: #1a1a1a;
+          text-align: center;
+          padding: 0.55rem 1rem;
+          font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em;
+          animation: flash 2s ease-in-out infinite;
         }
+        @keyframes flash {
+          0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
+        }
+
+        .snowflakes { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .flake { position: absolute; top: -20px; color: var(--ice); animation: fall linear infinite; opacity: 0.55; user-select: none; }
         @keyframes fall {
           0% { transform: translateY(-20px) rotate(0deg); opacity: 0.6; }
           100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
         }
 
         nav {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          position: fixed; top: 2.2rem; left: 0; right: 0; z-index: 100;
           padding: 1.2rem 2.5rem;
           display: flex; align-items: center; justify-content: center;
           transition: all 0.3s;
         }
         nav.scrolled {
-          background: rgba(255,255,255,0.92);
-          backdrop-filter: blur(16px);
-          border-bottom: 1px solid var(--snow3);
-          box-shadow: 0 2px 20px rgba(74,158,202,0.1);
+          background: rgba(255,255,255,0.92); backdrop-filter: blur(16px);
+          border-bottom: 1px solid var(--snow3); box-shadow: 0 2px 20px rgba(74,158,202,0.1);
         }
+        .nav-inner { display: flex; align-items: center; gap: 1.5rem; }
         .nav-logo { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--blue-dark); }
         .nav-logo span { color: var(--blue); font-style: italic; }
-        .nav-cta {
-          background: var(--blue-dark); color: white; border: none;
-          padding: 0.65rem 1.6rem; font-family: 'DM Sans', sans-serif;
-          font-weight: 500; font-size: 0.9rem; border-radius: 50px;
-          cursor: pointer; text-decoration: none; display: inline-block;
-          transition: all 0.2s; box-shadow: 0 4px 14px rgba(34,113,163,0.3);
+        .lang-btn {
+          background: var(--snow3); border: 1.5px solid var(--ice);
+          color: var(--blue-dark); font-family: 'DM Sans', sans-serif;
+          font-weight: 600; font-size: 0.8rem; letter-spacing: 0.08em;
+          padding: 0.35rem 0.8rem; border-radius: 20px; cursor: pointer;
+          transition: all 0.2s;
         }
-        .nav-cta:hover { background: var(--blue); transform: translateY(-1px); }
+        .lang-btn:hover { background: var(--blue-dark); color: white; border-color: var(--blue-dark); }
 
         .booking-banner {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+          position: fixed; top: 0; left: 0; right: 0; z-index: 998;
           background: var(--blue-dark); color: white;
           text-align: center; padding: 0.9rem 1rem;
           font-weight: 500; font-size: 0.95rem;
@@ -86,135 +160,67 @@ export default function Home() {
         .hero {
           min-height: 100vh; position: relative;
           display: flex; align-items: center;
-          padding: 8rem 2.5rem 5rem;
+          padding: 10rem 2.5rem 5rem;
           overflow: hidden;
           background: linear-gradient(160deg, #ffffff 0%, #eaf5ff 45%, #d4ecfa 100%);
         }
-        .hero-circle {
-          position: absolute; border-radius: 50%; pointer-events: none;
-        }
-        .hero-circle-1 {
-          width: 600px; height: 600px; top: -100px; right: -100px;
-          background: radial-gradient(circle, rgba(74,158,202,0.1) 0%, transparent 70%);
-        }
-        .hero-circle-2 {
-          width: 400px; height: 400px; bottom: -60px; left: -80px;
-          background: radial-gradient(circle, rgba(180,217,240,0.18) 0%, transparent 70%);
-        }
+        .hero-circle { position: absolute; border-radius: 50%; pointer-events: none; }
+        .hero-circle-1 { width: 600px; height: 600px; top: -100px; right: -100px; background: radial-gradient(circle, rgba(74,158,202,0.1) 0%, transparent 70%); }
+        .hero-circle-2 { width: 400px; height: 400px; bottom: -60px; left: -80px; background: radial-gradient(circle, rgba(180,217,240,0.18) 0%, transparent 70%); }
         .hero-content { position: relative; z-index: 2; max-width: 650px; }
-        .hero-eyebrow {
-          font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
-          color: var(--blue); margin-bottom: 1.2rem; font-weight: 500;
-          display: flex; align-items: center; gap: 0.7rem;
-        }
+        .hero-eyebrow { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--blue); margin-bottom: 1.2rem; font-weight: 500; display: flex; align-items: center; gap: 0.7rem; }
         .hero-eyebrow::before { content: '❄'; font-size: 1rem; }
-        .hero-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(3.2rem, 8vw, 6.5rem);
-          font-weight: 900; line-height: 1.05;
-          color: var(--blue-dark); margin-bottom: 1.5rem;
-        }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(3.2rem, 8vw, 6.5rem); font-weight: 900; line-height: 1.05; color: var(--blue-dark); margin-bottom: 1.5rem; }
         .hero-title em { color: var(--blue); font-style: italic; }
-        .hero-sub {
-          font-size: 1.15rem; font-weight: 300; line-height: 1.8;
-          color: var(--text-mid); max-width: 480px; margin-bottom: 2.5rem;
-        }
-        .btn-primary {
+        .hero-sub { font-size: 1.15rem; font-weight: 300; line-height: 1.8; color: var(--text-mid); max-width: 480px; margin-bottom: 2.5rem; }
+
+        /* MOBILE BOOK BUTTON */
+        .mobile-book-btn {
+          display: none;
           background: var(--blue-dark); color: white;
           padding: 1rem 2.4rem; font-family: 'DM Sans', sans-serif;
           font-weight: 500; font-size: 1rem; border: none; cursor: pointer;
-          text-decoration: none; display: inline-block; border-radius: 50px;
-          transition: all 0.25s; box-shadow: 0 6px 20px rgba(34,113,163,0.3);
+          text-decoration: none; border-radius: 50px;
+          box-shadow: 0 6px 20px rgba(34,113,163,0.3);
+          transition: all 0.25s;
         }
-        .btn-primary:hover { background: var(--blue); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(34,113,163,0.35); }
+        .mobile-book-btn:hover { background: var(--blue); transform: translateY(-2px); }
 
         .hero-circle-btn {
           position: absolute; right: 8%; top: 50%; transform: translateY(-50%);
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           width: 220px; height: 220px; border-radius: 50%;
           background: radial-gradient(circle at 40% 35%, #4a9eca, #2271a3);
-          border: none;
-          box-shadow: 0 10px 40px rgba(34,113,163,0.4);
+          border: none; box-shadow: 0 10px 40px rgba(34,113,163,0.4);
           text-decoration: none; cursor: pointer;
           transition: transform 0.3s, box-shadow 0.3s;
-          gap: 0.6rem;
-          z-index: 2;
+          gap: 0.6rem; z-index: 2;
         }
-        .hero-circle-btn:hover {
-          transform: translateY(-50%) scale(1.05);
-          box-shadow: 0 16px 50px rgba(34,113,163,0.5);
-        }
+        .hero-circle-btn:hover { transform: translateY(-50%) scale(1.05); box-shadow: 0 16px 50px rgba(34,113,163,0.5); }
         .hero-circle-btn-icon { font-size: 3rem; line-height: 1; }
-        .hero-circle-btn-label {
-          font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
-          color: white; font-weight: 600; font-family: 'DM Sans', sans-serif;
-          text-align: center;
-        }
-
-        .hero-visual {
-          position: absolute; right: 6%; top: 50%; transform: translateY(-50%);
-          width: 320px; height: 320px;
-          background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.95), rgba(215,238,252,0.7));
-          border-radius: 50%; border: 1px solid rgba(74,158,202,0.2);
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 20px 60px rgba(74,158,202,0.15), inset 0 0 40px rgba(255,255,255,0.5);
-          text-align: center;
-        }
-        .hero-visual-icon { font-size: 4rem; display: block; margin-bottom: 0.5rem; }
-        .hero-visual-label { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); font-weight: 500; font-family: 'DM Sans', sans-serif; }
+        .hero-circle-btn-label { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: white; font-weight: 600; font-family: 'DM Sans', sans-serif; text-align: center; }
 
         section { padding: 6rem 2.5rem; position: relative; }
-        .section-eyebrow {
-          font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-          color: var(--blue); font-weight: 500; margin-bottom: 0.8rem;
-          display: flex; align-items: center; gap: 0.6rem;
-        }
+        .section-eyebrow { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); font-weight: 500; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.6rem; }
         .section-eyebrow::before { content: '❄'; }
-        .section-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 900;
-          color: var(--blue-dark); line-height: 1.1; margin-bottom: 1rem;
-        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 900; color: var(--blue-dark); line-height: 1.1; margin-bottom: 1rem; }
         .section-title em { color: var(--blue); font-style: italic; }
 
         .how-section { background: var(--snow2); }
-        .how-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 1.8rem; margin-top: 3rem;
-        }
-        .how-step {
-          background: white; border-radius: 20px; padding: 2.2rem 1.8rem;
-          border: 1px solid var(--snow3); position: relative;
-          transition: transform 0.3s, box-shadow 0.3s;
-          box-shadow: 0 4px 20px rgba(74,158,202,0.06);
-        }
+        .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.8rem; margin-top: 3rem; }
+        .how-step { background: white; border-radius: 20px; padding: 2.2rem 1.8rem; border: 1px solid var(--snow3); position: relative; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 4px 20px rgba(74,158,202,0.06); }
         .how-step:hover { transform: translateY(-6px); box-shadow: 0 14px 36px rgba(74,158,202,0.13); }
-        .step-num {
-          font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 900;
-          color: var(--snow3); line-height: 1; position: absolute; top: 1.2rem; right: 1.5rem;
-        }
+        .step-num { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 900; color: var(--snow3); line-height: 1; position: absolute; top: 1.2rem; right: 1.5rem; }
         .step-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
         .step-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
         .step-desc { font-size: 0.9rem; font-weight: 300; color: var(--text-mid); line-height: 1.65; }
 
         .pricing-section { background: white; }
-        .pricing-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1.5rem; margin-top: 3rem;
-        }
-        .price-card {
-          background: var(--snow2); border: 1px solid var(--snow3);
-          border-radius: 20px; padding: 2.2rem 2rem; position: relative;
-          transition: transform 0.3s, box-shadow 0.3s;
-        }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+        .price-card { background: var(--snow2); border: 1px solid var(--snow3); border-radius: 20px; padding: 2.2rem 2rem; position: relative; transition: transform 0.3s, box-shadow 0.3s; }
         .price-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(74,158,202,0.12); }
         .price-card.featured { background: var(--blue-dark); border-color: var(--blue-dark); color: white; }
-        .price-badge {
-          position: absolute; top: -1px; right: 1.5rem;
-          background: var(--blue); color: white;
-          font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-          padding: 0.3rem 0.9rem; border-radius: 0 0 8px 8px;
-        }
+        .price-badge { position: absolute; top: -1px; right: 1.5rem; background: var(--blue); color: white; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 0 0 8px 8px; }
         .price-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
         .price-amount { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 900; color: var(--blue-dark); line-height: 1; margin: 0.8rem 0; }
         .price-card.featured .price-amount { color: white; }
@@ -222,109 +228,52 @@ export default function Home() {
         .price-includes { font-size: 0.78rem; color: var(--text-light); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1.5rem; }
         .price-card.featured .price-includes { color: rgba(255,255,255,0.5); }
         .price-features { list-style: none; }
-        .price-features li {
-          font-size: 0.9rem; font-weight: 300; color: var(--text-mid);
-          padding: 0.5rem 0; border-bottom: 1px solid var(--snow3);
-          display: flex; align-items: center; gap: 0.6rem;
-        }
+        .price-features li { font-size: 0.9rem; font-weight: 300; color: var(--text-mid); padding: 0.5rem 0; border-bottom: 1px solid var(--snow3); display: flex; align-items: center; gap: 0.6rem; }
         .price-card.featured .price-features li { color: rgba(255,255,255,0.8); border-bottom-color: rgba(255,255,255,0.12); }
         .price-features li::before { content: '❄'; color: var(--blue); font-size: 0.65rem; }
         .price-card.featured .price-features li::before { color: rgba(255,255,255,0.45); }
-        .cancel-note {
-          margin-top: 2rem; padding: 1.2rem 1.5rem;
-          border: 1px solid var(--snow3); border-left: 3px solid var(--blue);
-          background: var(--snow2); border-radius: 0 12px 12px 0;
-          font-size: 0.85rem; color: var(--text-mid); line-height: 1.6;
-        }
+        .cancel-note { margin-top: 2rem; padding: 1.2rem 1.5rem; border: 1px solid var(--snow3); border-left: 3px solid var(--blue); background: var(--snow2); border-radius: 0 12px 12px 0; font-size: 0.85rem; color: var(--text-mid); line-height: 1.6; }
         .cancel-note strong { color: var(--blue-dark); }
 
         .team-section { background: var(--snow2); }
-        .team-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 1.5rem; margin-top: 3rem;
-        }
-        .team-card {
-          background: white; border: 1px solid var(--snow3); border-radius: 20px;
-          padding: 2rem 1.8rem; text-align: center;
-          transition: transform 0.3s, box-shadow 0.3s;
-          box-shadow: 0 4px 16px rgba(74,158,202,0.06);
-        }
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+        .team-card { background: white; border: 1px solid var(--snow3); border-radius: 20px; padding: 2rem 1.8rem; text-align: center; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 4px 16px rgba(74,158,202,0.06); }
         .team-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(74,158,202,0.12); }
-        .team-avatar {
-          width: 110px; height: 110px; border-radius: 50%;
-          background: var(--snow3);
-          overflow: hidden;
-          margin: 0 auto 1.2rem;
-          border: 3px solid var(--ice);
-          box-shadow: 0 6px 20px rgba(74,158,202,0.18);
-        }
+        .team-avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--snow3); overflow: hidden; margin: 0 auto 1.2rem; border: 3px solid var(--ice); box-shadow: 0 6px 20px rgba(74,158,202,0.18); }
         .team-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
-        .team-role { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); font-weight: 500; margin-bottom: 0.7rem; }
-        .team-email { font-size: 0.82rem; color: var(--text-light); font-weight: 300; }
+        .team-role { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); font-weight: 500; }
 
-        footer {
-          background: var(--text); padding: 2.5rem 2.5rem;
-          display: flex; justify-content: space-between; align-items: center;
-          flex-wrap: wrap; gap: 1rem;
-        }
+        footer { background: var(--text); padding: 2.5rem 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 900; color: white; font-style: italic; }
         .footer-logo span { color: var(--ice); }
         .footer-text { font-size: 0.8rem; color: rgba(255,255,255,0.3); font-weight: 300; }
 
-        .chat-trigger {
-          position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
-          width: 58px; height: 58px; background: var(--blue-dark);
-          border: none; cursor: pointer; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
-          box-shadow: 0 4px 20px rgba(34,113,163,0.4);
-          animation: pulse 2.5s infinite; transition: transform 0.2s, background 0.2s;
-        }
+        .chat-trigger { position: fixed; bottom: 2rem; right: 2rem; z-index: 200; width: 58px; height: 58px; background: var(--blue-dark); border: none; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 4px 20px rgba(34,113,163,0.4); animation: pulse 2.5s infinite; transition: transform 0.2s, background 0.2s; }
         .chat-trigger:hover { transform: scale(1.1); background: var(--blue); animation: none; }
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(34,113,163,0.4); }
-          70% { box-shadow: 0 0 0 14px rgba(34,113,163,0); }
-          100% { box-shadow: 0 0 0 0 rgba(34,113,163,0); }
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34,113,163,0.4); } 70% { box-shadow: 0 0 0 14px rgba(34,113,163,0); } 100% { box-shadow: 0 0 0 0 rgba(34,113,163,0); } }
 
-        .chat-modal {
-          position: fixed; bottom: 5.5rem; right: 2rem; z-index: 200;
-          width: 340px; background: white; border: 1px solid var(--snow3);
-          border-radius: 20px; box-shadow: 0 20px 60px rgba(74,158,202,0.2); overflow: hidden;
-        }
-        .chat-header {
-          background: var(--blue-dark); padding: 1rem 1.2rem;
-          display: flex; justify-content: space-between; align-items: center;
-        }
+        .chat-modal { position: fixed; bottom: 5.5rem; right: 2rem; z-index: 200; width: 340px; background: white; border: 1px solid var(--snow3); border-radius: 20px; box-shadow: 0 20px 60px rgba(74,158,202,0.2); overflow: hidden; }
+        .chat-header { background: var(--blue-dark); padding: 1rem 1.2rem; display: flex; justify-content: space-between; align-items: center; }
         .chat-header-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: white; }
         .chat-header-sub { font-size: 0.72rem; color: rgba(255,255,255,0.55); font-weight: 300; margin-top: 0.1rem; }
         .chat-close { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 1.1rem; }
         .chat-close:hover { color: white; }
-        .chat-messages {
-          height: 220px; overflow-y: auto; padding: 1rem;
-          display: flex; flex-direction: column; gap: 0.8rem; background: var(--snow2);
-        }
+        .chat-messages { height: 220px; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; background: var(--snow2); }
         .chat-messages::-webkit-scrollbar { width: 4px; }
         .chat-messages::-webkit-scrollbar-thumb { background: var(--snow3); border-radius: 4px; }
         .msg { max-width: 85%; font-size: 0.88rem; line-height: 1.5; padding: 0.7rem 1rem; border-radius: 14px; }
         .msg.assistant { background: white; border: 1px solid var(--snow3); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
         .msg.user { background: var(--blue-dark); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .chat-input-row { display: flex; border-top: 1px solid var(--snow3); }
-        .chat-input {
-          flex: 1; padding: 0.9rem 1rem; background: white; border: none;
-          color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none;
-        }
+        .chat-input { flex: 1; padding: 0.9rem 1rem; background: white; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none; }
         .chat-input::placeholder { color: var(--text-light); }
-        .chat-send {
-          background: var(--blue-dark); border: none; cursor: pointer;
-          color: white; font-weight: 500; font-size: 0.85rem;
-          padding: 0 1.2rem; transition: background 0.2s;
-        }
+        .chat-send { background: var(--blue-dark); border: none; cursor: pointer; color: white; font-weight: 500; font-size: 0.85rem; padding: 0 1.2rem; transition: background 0.2s; }
         .chat-send:hover { background: var(--blue); }
 
         @media (max-width: 768px) {
-          .hero-visual { display: none; }
           .hero-circle-btn { display: none; }
-          nav { padding: 1rem 1.2rem; }
+          .mobile-book-btn { display: inline-block; }
+          nav { padding: 1rem 1.2rem; top: 2rem; }
           section { padding: 4rem 1.2rem; }
           footer { padding: 2rem 1.2rem; flex-direction: column; text-align: center; }
           .chat-modal { right: 0.8rem; left: 0.8rem; width: auto; }
@@ -333,109 +282,94 @@ export default function Home() {
 
       <Snowflakes />
 
+      {/* DEMO BANNER */}
+      <div className="demo-banner">{tx.demo}</div>
+
       {showBooked && (
-        <div className="booking-banner">
-          ✅ Booking received! We'll confirm your pickup window shortly.
-        </div>
+        <div className="booking-banner">{tx.booked}</div>
       )}
 
       <nav className={scrolled ? 'scrolled' : ''}>
-        <div className="nav-logo">Skie<span>asy</span>-Peasy</div>
+        <div className="nav-inner">
+          <div className="nav-logo">Skie<span>asy</span>-Peasy</div>
+          <button className="lang-btn" onClick={() => switchLang(lang === 'en' ? 'hu' : 'en')}>{tx.langBtn}</button>
+        </div>
       </nav>
 
       <section className="hero">
         <div className="hero-circle hero-circle-1" />
         <div className="hero-circle hero-circle-2" />
         <div className="hero-content">
-          <div className="hero-eyebrow">Door-to-door ski &amp; snowboard service</div>
+          <div className="hero-eyebrow">{tx.eyebrow}</div>
           <h1 className="hero-title">
-            Your gear,<br />
-            <em>serviced &amp;</em><br />
-            delivered.
+            {tx.title1}<br />
+            <em>{tx.title2}</em><br />
+            {tx.title3}
           </h1>
-          <p className="hero-sub">
-            We collect your skis or snowboard, bring them to a certified workshop, and return them to your door — sharp, waxed, and ready to ride.
-          </p>
-
+          <p className="hero-sub">{tx.sub}</p>
+          <a href="/book" className="mobile-book-btn">{tx.bookBtn}</a>
         </div>
-
-        <a href="/book" className="hero-circle-btn" title="Book a Pickup">
+        <a href="/book" className="hero-circle-btn" title={tx.bookBtn}>
           <span className="hero-circle-btn-icon">🏂</span>
-          <span className="hero-circle-btn-label">BOOK A PICKUP</span>
+          <span className="hero-circle-btn-label">{tx.bookBtn}</span>
         </a>
-
       </section>
 
       <section id="how" className="how-section">
-        <div className="section-eyebrow">Process</div>
-        <h2 className="section-title">How it <em>works</em></h2>
+        <div className="section-eyebrow">{tx.howLabel}</div>
+        <h2 className="section-title">{tx.howTitle} <em>{tx.howTitleEm}</em></h2>
         <div className="how-grid">
           {[
-            { n: '01', icon: '📲', title: 'Book Online', desc: 'Fill in your details and choose your service. No account needed — takes 60 seconds.' },
-            { n: '02', icon: '🚚', title: 'We Collect', desc: 'Our team picks up your equipment directly from your home or office.' },
-            { n: '03', icon: '🔧', title: 'Expert Service', desc: 'Partner workshops tune your gear — wax, edge grind, full service.' },
-            { n: '04', icon: '🏠', title: 'We Deliver', desc: 'Clean, sharp, and perfectly tuned — dropped back at your door.' },
-          ].map(s => (
+            { n: '01', icon: '📲' },
+            { n: '02', icon: '🚚' },
+            { n: '03', icon: '🔧' },
+            { n: '04', icon: '🏠' },
+          ].map((s, i) => (
             <div className="how-step" key={s.n}>
               <div className="step-num">{s.n}</div>
               <span className="step-icon">{s.icon}</span>
-              <div className="step-title">{s.title}</div>
-              <p className="step-desc">{s.desc}</p>
+              <div className="step-title">{tx.steps[i].title}</div>
+              <p className="step-desc">{tx.steps[i].desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       <section id="pricing" className="pricing-section">
-        <div className="section-eyebrow">Pricing</div>
-        <h2 className="section-title">What's <em>included</em></h2>
+        <div className="section-eyebrow">{tx.pricingLabel}</div>
+        <h2 className="section-title">{tx.pricingTitle} <em>{tx.pricingTitleEm}</em></h2>
         <div className="pricing-grid">
           <div className="price-card">
-            <div className="price-name">Wax Only</div>
+            <div className="price-name">{tx.waxName}</div>
             <div className="price-amount"><sup>€</sup>15</div>
-            <div className="price-includes">+ pickup &amp; delivery fee</div>
-            <ul className="price-features">
-              <li>Hot wax treatment</li>
-              <li>Base cleaning</li>
-              <li>24–48h turnaround</li>
-            </ul>
+            <div className="price-includes">{tx.fee}</div>
+            <ul className="price-features">{tx.waxF.map((f,i) => <li key={i}>{f}</li>)}</ul>
           </div>
           <div className="price-card featured">
-            <div className="price-badge">Most Popular</div>
-            <div className="price-name">Full Service</div>
+            <div className="price-badge">{tx.popular}</div>
+            <div className="price-name">{tx.fullName}</div>
             <div className="price-amount"><sup>€</sup>35</div>
-            <div className="price-includes">+ pickup &amp; delivery fee</div>
-            <ul className="price-features">
-              <li>Wax + edge tuning</li>
-              <li>Base repair (minor)</li>
-              <li>Binding check</li>
-              <li>24–48h turnaround</li>
-            </ul>
+            <div className="price-includes">{tx.fee}</div>
+            <ul className="price-features">{tx.fullF.map((f,i) => <li key={i}>{f}</li>)}</ul>
           </div>
           <div className="price-card">
-            <div className="price-name">Edge Tuning</div>
+            <div className="price-name">{tx.edgeName}</div>
             <div className="price-amount"><sup>€</sup>20</div>
-            <div className="price-includes">+ pickup &amp; delivery fee</div>
-            <ul className="price-features">
-              <li>Side &amp; base edge grind</li>
-              <li>Deburring</li>
-              <li>24–48h turnaround</li>
-            </ul>
+            <div className="price-includes">{tx.fee}</div>
+            <ul className="price-features">{tx.edgeF.map((f,i) => <li key={i}>{f}</li>)}</ul>
           </div>
         </div>
-        <div className="cancel-note">
-          <strong>Cancellation policy:</strong> Late cancellation (under 24h) or no-show may incur up to 50% of the service fee. We'll always reach out first.
-        </div>
+        <div className="cancel-note">{tx.cancelNote}</div>
       </section>
 
       <section id="team" className="team-section">
-        <div className="section-eyebrow">The people behind it</div>
-        <h2 className="section-title">Our <em>team</em></h2>
+        <div className="section-eyebrow">{tx.teamLabel}</div>
+        <h2 className="section-title">{tx.teamTitle} <em>{tx.teamTitleEm}</em></h2>
         <div className="team-grid">
           {[
-            { img: '/Julia.png',  name: 'Julia Pummer',  role: 'Owner',           pos: 'center top' },
-            { img: '/Tamara.png', name: 'Tamara Szabó',  role: 'CEO',             pos: 'center 15%' },
-            { img: '/Farouk.png', name: 'Farouk Aziz',   role: 'Product Manager', pos: 'center top' },
+            { img: '/Julia.png',  name: 'Julia Pummer',  role: lang === 'en' ? 'Owner' : 'Tulajdonos',           pos: 'center top' },
+            { img: '/Tamara.png', name: 'Tamara Szabó',  role: 'CEO',                                             pos: 'center 15%' },
+            { img: '/Farouk.png', name: 'Farouk Aziz',   role: lang === 'en' ? 'Product Manager' : 'Termékmenedzser', pos: 'center top' },
           ].map((m, i) => (
             <div className="team-card" key={i}>
               <div className="team-avatar">
@@ -451,13 +385,13 @@ export default function Home() {
       <footer>
         <div>
           <div className="footer-logo"><span>Skieasy</span>-Peasy</div>
-          <div className="footer-text" style={{ marginTop: '0.3rem' }}>Budapest · Hungary</div>
+          <div className="footer-text" style={{ marginTop: '0.3rem' }}>{tx.footerSub}</div>
         </div>
-        <div className="footer-text">© 2025 SKIEASY-PEASY. All rights reserved.</div>
+        <div className="footer-text">{tx.footer}</div>
       </footer>
 
-      <button className="chat-trigger" onClick={() => setChatOpen(true)} title="Chat with us">💬</button>
-      {chatOpen && <ChatModal onClose={() => setChatOpen(false)} />}
+      <button className="chat-trigger" onClick={() => setChatOpen(true)} title="Chat">💬</button>
+      {chatOpen && <ChatModal onClose={() => setChatOpen(false)} tx={tx} />}
     </>
   );
 }
@@ -472,7 +406,7 @@ function Snowflakes() {
     { id:5,  left:'42%', size:'0.7rem', dur:'15s', delay:'3s',   sym:'❆' },
     { id:6,  left:'50%', size:'0.9rem', dur:'10s', delay:'6s',   sym:'❄' },
     { id:7,  left:'57%', size:'1.1rem', dur:'13s', delay:'0.5s', sym:'❅' },
-    { id:8,  left:'63%', size:'0.75rem','dur':'9s', delay:'4s',  sym:'❆' },
+    { id:8,  left:'63%', size:'0.75rem',dur:'9s',  delay:'4s',   sym:'❆' },
     { id:9,  left:'70%', size:'1.0rem', dur:'11s', delay:'8s',   sym:'❄' },
     { id:10, left:'77%', size:'0.8rem', dur:'14s', delay:'2.5s', sym:'❅' },
     { id:11, left:'83%', size:'0.9rem', dur:'10s', delay:'6.5s', sym:'❆' },
@@ -490,30 +424,22 @@ function Snowflakes() {
   );
 }
 
-function ChatModal({ onClose }: { onClose: () => void }) {
+function ChatModal({ onClose, tx }: { onClose: () => void; tx: typeof t.en }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: "Hi! I'm the SKIEASY-PEASY assistant ❄️ Ask me anything about our service, pricing, or pickup process." }
+    { role: 'assistant', content: tx.chatWelcome }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const send = async () => {
     if (!input.trim() || loading) return;
     const next = [...messages, { role: 'user', content: input }];
-    setMessages(next);
-    setInput('');
-    setLoading(true);
+    setMessages(next); setInput(''); setLoading(true);
     try {
-      const res = await fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next }),
-      });
+      const res = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: next }) });
       const data = await res.json();
       setMessages([...next, { role: 'assistant', content: data.reply }]);
     } catch {
@@ -526,27 +452,19 @@ function ChatModal({ onClose }: { onClose: () => void }) {
     <div className="chat-modal">
       <div className="chat-header">
         <div>
-          <div className="chat-header-title">Skieasy Assistant</div>
-          <div className="chat-header-sub">Ask anything about our service</div>
+          <div className="chat-header-title">{tx.chatTitle}</div>
+          <div className="chat-header-sub">{tx.chatSub}</div>
         </div>
         <button className="chat-close" onClick={onClose}>✕</button>
       </div>
       <div className="chat-messages">
-        {messages.map((m, i) => (
-          <div key={i} className={`msg ${m.role}`}>{m.content}</div>
-        ))}
+        {messages.map((m, i) => <div key={i} className={`msg ${m.role}`}>{m.content}</div>)}
         {loading && <div className="msg assistant" style={{ color: 'var(--text-light)' }}>Typing…</div>}
         <div ref={bottomRef} />
       </div>
       <div className="chat-input-row">
-        <input
-          className="chat-input"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && send()}
-          placeholder="Ask about pricing, timing…"
-        />
-        <button className="chat-send" onClick={send}>Send</button>
+        <input className="chat-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder={tx.chatPlaceholder} />
+        <button className="chat-send" onClick={send}>{tx.chatSend}</button>
       </div>
     </div>
   );
