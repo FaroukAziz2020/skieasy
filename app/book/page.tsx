@@ -13,14 +13,20 @@ const t = {
     equipment: 'Equipment', equipP: 'Select equipment type',
     ski: 'Ski', snowboard: 'Snowboard',
     service: 'Service Type', serviceP: 'Select a service',
-    full: 'Full Service (wax + edges) — €35',
-    wax: 'Wax Only — €15',
-    edge: 'Edge Tuning — €20',
+    full: 'Full Service (wax + edges) — 17 900 HUF',
+    wax: 'Wax Only — 7 600 HUF',
+    edge: 'Edge Tuning — 10 200 HUF',
+    pickupOnly: 'Pickup from Shop Only — 2 700 HUF',
+    returnOnly: 'Deliver to Shop Only — 2 700 HUF',
+    shopGroupLabel: '— Shop Services —',
+    fullGroupLabel: '— Full Service —',
+    shopName: 'Shop Name', shopNameP: 'Shop name (Budapest only)',
+    shopNote: '⚠️ Only available within Budapest',
     submit: 'Confirm Booking ❄',
     expectTitle: 'What to expect',
     expect: ['We confirm within a few hours', 'Pickup within 1–2 business days', 'Service takes 24–48 hours', 'Equipment returned to your door'],
-    feeTitle: 'Pickup fee',
-    feeDesc: "A small pickup & delivery fee is added to all orders. We'll confirm the total when we reach out to schedule your time window.",
+    feeTitle: 'Pricing',
+    feeDesc: 'All prices include pickup & delivery (4 500 HUF). Shop-only services are 60% of standard delivery price.',
     cancel: 'Cancellation: Late cancellation (<24h) or no-show may incur up to 50% of the service fee.',
     demo: '⚠️ DEMO WEBSITE — NOT FOR SERVICE',
     langBtn: '🇭🇺 HU',
@@ -36,14 +42,20 @@ const t = {
     equipment: 'Felszerelés', equipP: 'Válassz felszerelést',
     ski: 'Síléc', snowboard: 'Snowboard',
     service: 'Szolgáltatás típusa', serviceP: 'Válassz szolgáltatást',
-    full: 'Teljes szerviz (wax + él) — €35',
-    wax: 'Csak wax — €15',
-    edge: 'Élezés — €20',
+    full: 'Teljes szerviz (wax + él) — 17 900 HUF',
+    wax: 'Csak wax — 7 600 HUF',
+    edge: 'Élezés — 10 200 HUF',
+    pickupOnly: 'Csak felvétel a boltból — 2 700 HUF',
+    returnOnly: 'Csak visszaszállítás a boltba — 2 700 HUF',
+    shopGroupLabel: '— Bolti Szolgáltatások —',
+    fullGroupLabel: '— Teljes Szerviz —',
+    shopName: 'Bolt neve', shopNameP: 'Bolt neve (csak Budapest)',
+    shopNote: '⚠️ Csak Budapesten elérhető',
     submit: 'Foglalás megerősítése ❄',
     expectTitle: 'Mire számíthatsz',
     expect: ['Néhány órán belül megerősítjük', 'Felvétel 1–2 munkanapon belül', 'Szerviz 24–48 órát vesz igénybe', 'Felszerelés visszaszállítva az ajtódhoz'],
-    feeTitle: 'Felvételi díj',
-    feeDesc: 'Minden rendeléshez kis felvételi és szállítási díj adódik. A végösszeget egyeztetjük, amikor felhívunk az időpont egyeztetéséhez.',
+    feeTitle: 'Árak',
+    feeDesc: 'Minden ár tartalmazza a felvételt és szállítást (4 500 HUF). A bolti szolgáltatások az alap szállítási ár 60%-a.',
     cancel: 'Lemondás: Késői lemondás (<24 óra) vagy meg nem jelenés esetén a díj 50%-a felszámítható.',
     demo: '⚠️ DEMO WEBOLDAL — NEM VALÓDI SZOLGÁLTATÁS',
     langBtn: '🇬🇧 EN',
@@ -52,6 +64,8 @@ const t = {
 
 export default function Book() {
   const [lang, setLang] = useState<'en'|'hu'>('en');
+  const [selectedService, setSelectedService] = useState('');
+  const [shopName, setShopName] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('skieasy-lang');
@@ -62,7 +76,9 @@ export default function Book() {
     setLang(l);
     localStorage.setItem('skieasy-lang', l);
   };
+
   const tx = t[lang];
+  const isShopService = selectedService === 'Pickup From Shop Only' || selectedService === 'Deliver To Shop Only';
 
   return (
     <>
@@ -76,21 +92,10 @@ export default function Book() {
         }
         body { font-family: 'DM Sans', sans-serif; background: var(--snow); color: var(--text); }
 
-        .demo-banner {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-          background: #f59e0b; color: #1a1a1a;
-          text-align: center; padding: 0.55rem 1rem;
-          font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em;
-          animation: flash 2s ease-in-out infinite;
-        }
+        .demo-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f59e0b; color: #1a1a1a; text-align: center; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em; animation: flash 2s ease-in-out infinite; }
         @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        .book-page {
-          min-height: 100vh;
-          background: linear-gradient(160deg, #ffffff 0%, #eaf5ff 45%, #d4ecfa 100%);
-          padding: 6rem 1.5rem 5rem;
-          display: flex; flex-direction: column; align-items: center;
-        }
+        .book-page { min-height: 100vh; background: linear-gradient(160deg, #ffffff 0%, #eaf5ff 45%, #d4ecfa 100%); padding: 6rem 1.5rem 5rem; display: flex; flex-direction: column; align-items: center; }
         .top-bar { align-self: flex-start; max-width: 900px; width: 100%; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
         .back-link { color: var(--text-light); font-size: 0.85rem; text-decoration: none; transition: color 0.2s; }
         .back-link:hover { color: var(--blue-dark); }
@@ -115,19 +120,29 @@ export default function Book() {
         input::placeholder { color: var(--text-light); }
         select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a9eca' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-color: var(--snow2); }
         select option { background: white; color: var(--text); }
+        select optgroup { color: var(--text-light); font-style: normal; font-size: 0.8rem; }
+
+
         .submit-btn { width: 100%; padding: 1rem; background: var(--blue-dark); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1rem; color: white; border-radius: 50px; transition: background 0.2s, transform 0.2s; margin-top: 0.5rem; box-shadow: 0 6px 20px rgba(34,113,163,0.3); }
         .submit-btn:hover { background: var(--blue); transform: translateY(-1px); }
 
         .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
         .info-card { background: white; border: 1px solid var(--snow3); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(74,158,202,0.06); }
         .info-card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 0.8rem; }
-        .info-card p { font-size: 0.85rem; font-weight: 300; color: var(--text-mid); line-height: 1.65; }
+        .info-card p { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; margin-bottom: 0.8rem; }
         .info-list { list-style: none; }
         .info-list li { font-size: 0.85rem; font-weight: 300; color: var(--text-mid); padding: 0.45rem 0; border-bottom: 1px solid var(--snow3); display: flex; align-items: center; gap: 0.6rem; }
         .info-list li:last-child { border-bottom: none; }
         .info-list li::before { content: '❄'; color: var(--blue); font-size: 0.65rem; }
         .cancel-note { padding: 1rem 1.2rem; border: 1px solid var(--snow3); border-left: 3px solid var(--blue); background: var(--snow2); border-radius: 0 12px 12px 0; font-size: 0.8rem; color: var(--text-mid); line-height: 1.6; }
         .cancel-note strong { color: var(--blue-dark); }
+
+        .price-table { width: 100%; border-collapse: collapse; }
+        .price-table tr { border-bottom: 1px solid var(--snow3); }
+        .price-table tr:last-child { border-bottom: none; }
+        .price-table td { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); padding: 0.45rem 0; line-height: 1.4; }
+        .price-table td:last-child { text-align: right; font-weight: 600; color: var(--blue-dark); white-space: nowrap; padding-left: 0.5rem; }
+        .price-table tr.divider td { padding-top: 0.7rem; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); border-bottom: none; }
       `}</style>
 
       <div className="demo-banner">{tx.demo}</div>
@@ -175,13 +190,36 @@ export default function Book() {
             </div>
             <div className="form-group">
               <label htmlFor="service">{tx.service} *</label>
-              <select id="service" name="entry.1172623689" required>
+              <select
+                id="service"
+                name="entry.1172623689"
+                required
+                onChange={e => { setSelectedService(e.target.value); setShopName(''); }}
+              >
                 <option value="">{tx.serviceP}</option>
-                <option value="Full Service (wax + edges)">{tx.full}</option>
-                <option value="Wax Only">{tx.wax}</option>
-                <option value="Edge Tuning">{tx.edge}</option>
+                <optgroup label={tx.fullGroupLabel}>
+                  <option value="Full Service (wax + edges)">{tx.full}</option>
+                  <option value="Wax Only">{tx.wax}</option>
+                  <option value="Edge Tuning">{tx.edge}</option>
+                </optgroup>
+                <optgroup label={tx.shopGroupLabel}>
+                  <option value="Pickup From Shop Only">{tx.pickupOnly}</option>
+                  <option value="Deliver To Shop Only">{tx.returnOnly}</option>
+                </optgroup>
               </select>
             </div>
+
+            <div className="form-group">
+              <label htmlFor="shopname">{tx.shopName} *</label>
+              <input
+                type="text"
+                id="shopname"
+                name="entry.397459118"
+                placeholder={tx.shopNameP}
+                required
+              />
+            </div>
+
             <button type="submit" className="submit-btn">{tx.submit}</button>
           </form>
 
@@ -192,10 +230,24 @@ export default function Book() {
                 {tx.expect.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             </div>
+
             <div className="info-card">
               <div className="info-card-title">{tx.feeTitle}</div>
               <p>{tx.feeDesc}</p>
+              <table className="price-table">
+                <tbody>
+                  <tr className="divider"><td colSpan={2}>{lang === 'en' ? 'Door-to-door' : 'Háztól házig'}</td></tr>
+                  <tr><td>{lang === 'en' ? 'Pickup & delivery' : 'Felvétel & szállítás'}</td><td>4 500 HUF</td></tr>
+                  <tr><td>{lang === 'en' ? 'Wax Only' : 'Csak wax'}</td><td>7 600 HUF</td></tr>
+                  <tr><td>{lang === 'en' ? 'Edge Tuning' : 'Élezés'}</td><td>10 200 HUF</td></tr>
+                  <tr><td>{lang === 'en' ? 'Full Service' : 'Teljes szerviz'}</td><td>17 900 HUF</td></tr>
+                  <tr className="divider"><td colSpan={2}>{lang === 'en' ? 'Shop services' : 'Bolti szolgáltatások'}</td></tr>
+                  <tr><td>{lang === 'en' ? 'Shop pickup only' : 'Csak bolti felvétel'}</td><td>2 700 HUF</td></tr>
+                  <tr><td>{lang === 'en' ? 'Deliver to shop only' : 'Visszavitel a boltba'}</td><td>2 700 HUF</td></tr>
+                </tbody>
+              </table>
             </div>
+
             <div className="cancel-note">
               <strong>{lang === 'en' ? 'Cancellation:' : 'Lemondás:'}</strong> {tx.cancel.replace(/^[^:]+: /, '')}
             </div>
