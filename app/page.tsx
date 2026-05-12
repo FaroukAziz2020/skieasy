@@ -24,12 +24,13 @@ const t = {
     teamLabel: 'The people behind it', teamTitle: 'Our', teamTitleEm: 'team',
     footerSub: 'Budapest · Hungary',
     footer: '© 2025 SKIEASY-PEASY. All rights reserved.',
-    chatTitle: 'Skieasy Assistant', chatSub: 'Ask anything about our service',
-    chatWelcome: "Hi! I'm the SKIEASY-PEASY assistant ❄️ Ask me anything about our service, pricing, or pickup process.",
+    chatTitle: 'Skieasy', chatSub: 'Ask anything about our service',
+    chatWelcome: "Hi! I'm Skieasy ❄️ Ask me anything about our service, pricing, or pickup process.",
     chatPlaceholder: 'Ask about pricing, timing…', chatSend: 'Send',
     booked: '✅ Booking received! We\'ll confirm your pickup window shortly.',
     demo: '⚠️ DEMO WEBSITE — NOT FOR SERVICE',
     langBtn: '🇭🇺 HU',
+    bubble: 'Talk to me!',
   },
   hu: {
     eyebrow: 'Háztól házig sífelszerelés-szerviz',
@@ -53,12 +54,13 @@ const t = {
     teamLabel: 'Az emberek mögötte', teamTitle: 'A mi', teamTitleEm: 'csapatunk',
     footerSub: 'Budapest · Magyarország',
     footer: '© 2025 SKIEASY-PEASY. Minden jog fenntartva.',
-    chatTitle: 'Skieasy Asszisztens', chatSub: 'Kérdezz bármit a szolgáltatásunkról',
-    chatWelcome: 'Szia! A SKIEASY-PEASY asszisztense vagyok ❄️ Kérdezz bármit a szolgáltatásunkról, árainkról vagy a felvételi folyamatról.',
+    chatTitle: 'Skieasy', chatSub: 'Kérdezz bármit a szolgáltatásunkról',
+    chatWelcome: 'Szia! Skieasy vagyok ❄️ Kérdezz bármit a szolgáltatásunkról, árainkról vagy a felvételi folyamatról.',
     chatPlaceholder: 'Kérdezz az árakról, időzítésről…', chatSend: 'Küldés',
     booked: '✅ Foglalás megérkezett! Hamarosan megerősítjük a felvételi időpontot.',
     demo: '⚠️ DEMO WEBOLDAL — NEM VALÓDI SZOLGÁLTATÁS',
     langBtn: '🇬🇧 EN',
+    bubble: 'Írj nekem!',
   }
 };
 
@@ -67,6 +69,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [showBooked, setShowBooked] = useState(false);
   const [lang, setLang] = useState<'en'|'hu'>('en');
+  const [showBubble, setShowBubble] = useState(true);
 
   useEffect(() => {
     const saved = localStorage.getItem('skieasy-lang');
@@ -92,6 +95,12 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Hide bubble when chat opens
+  const handleOpenChat = () => {
+    setChatOpen(true);
+    setShowBubble(false);
+  };
+
   return (
     <>
       <style>{`
@@ -105,65 +114,25 @@ export default function Home() {
         html { scroll-behavior: smooth; }
         body { font-family: 'DM Sans', sans-serif; background: var(--snow); color: var(--text); overflow-x: hidden; }
 
-        /* DEMO BANNER */
-        .demo-banner {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-          background: #f59e0b;
-          color: #1a1a1a;
-          text-align: center;
-          padding: 0.55rem 1rem;
-          font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em;
-          animation: flash 2s ease-in-out infinite;
-        }
-        @keyframes flash {
-          0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
-        }
+        .demo-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f59e0b; color: #1a1a1a; text-align: center; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em; animation: flash 2s ease-in-out infinite; }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         .snowflakes { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
         .flake { position: absolute; top: -20px; color: var(--ice); animation: fall linear infinite; opacity: 0.55; user-select: none; }
-        @keyframes fall {
-          0% { transform: translateY(-20px) rotate(0deg); opacity: 0.6; }
-          100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-        }
+        @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 0.6; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
 
-        nav {
-          position: fixed; top: 2.2rem; left: 0; right: 0; z-index: 100;
-          padding: 1.2rem 2.5rem;
-          display: flex; align-items: center; justify-content: center;
-          transition: all 0.3s;
-        }
-        nav.scrolled {
-          background: rgba(255,255,255,0.92); backdrop-filter: blur(16px);
-          border-bottom: 1px solid var(--snow3); box-shadow: 0 2px 20px rgba(74,158,202,0.1);
-        }
+        nav { position: fixed; top: 2.2rem; left: 0; right: 0; z-index: 100; padding: 1.2rem 2.5rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        nav.scrolled { background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid var(--snow3); box-shadow: 0 2px 20px rgba(74,158,202,0.1); }
         .nav-inner { display: flex; align-items: center; gap: 1.5rem; }
         .nav-logo { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--blue-dark); }
         .nav-logo span { color: var(--blue); font-style: italic; }
-        .lang-btn {
-          background: var(--snow3); border: 1.5px solid var(--ice);
-          color: var(--blue-dark); font-family: 'DM Sans', sans-serif;
-          font-weight: 600; font-size: 0.8rem; letter-spacing: 0.08em;
-          padding: 0.35rem 0.8rem; border-radius: 20px; cursor: pointer;
-          transition: all 0.2s;
-        }
+        .lang-btn { background: var(--snow3); border: 1.5px solid var(--ice); color: var(--blue-dark); font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.08em; padding: 0.35rem 0.8rem; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
         .lang-btn:hover { background: var(--blue-dark); color: white; border-color: var(--blue-dark); }
 
-        .booking-banner {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 998;
-          background: var(--blue-dark); color: white;
-          text-align: center; padding: 0.9rem 1rem;
-          font-weight: 500; font-size: 0.95rem;
-          animation: slideDown 0.4s ease;
-        }
+        .booking-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 998; background: var(--blue-dark); color: white; text-align: center; padding: 0.9rem 1rem; font-weight: 500; font-size: 0.95rem; animation: slideDown 0.4s ease; }
         @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 
-        .hero {
-          min-height: 100vh; position: relative;
-          display: flex; align-items: center;
-          padding: 10rem 2.5rem 5rem;
-          overflow: hidden;
-          background: linear-gradient(160deg, #ffffff 0%, #eaf5ff 45%, #d4ecfa 100%);
-        }
+        .hero { min-height: 100vh; position: relative; display: flex; align-items: center; padding: 10rem 2.5rem 5rem; overflow: hidden; background: linear-gradient(160deg, #ffffff 0%, #eaf5ff 45%, #d4ecfa 100%); }
         .hero-circle { position: absolute; border-radius: 50%; pointer-events: none; }
         .hero-circle-1 { width: 600px; height: 600px; top: -100px; right: -100px; background: radial-gradient(circle, rgba(74,158,202,0.1) 0%, transparent 70%); }
         .hero-circle-2 { width: 400px; height: 400px; bottom: -60px; left: -80px; background: radial-gradient(circle, rgba(180,217,240,0.18) 0%, transparent 70%); }
@@ -174,28 +143,10 @@ export default function Home() {
         .hero-title em { color: var(--blue); font-style: italic; }
         .hero-sub { font-size: 1.15rem; font-weight: 300; line-height: 1.8; color: var(--text-mid); max-width: 480px; margin-bottom: 2.5rem; }
 
-        /* MOBILE BOOK BUTTON */
-        .mobile-book-btn {
-          display: none;
-          background: var(--blue-dark); color: white;
-          padding: 1rem 2.4rem; font-family: 'DM Sans', sans-serif;
-          font-weight: 500; font-size: 1rem; border: none; cursor: pointer;
-          text-decoration: none; border-radius: 50px;
-          box-shadow: 0 6px 20px rgba(34,113,163,0.3);
-          transition: all 0.25s;
-        }
+        .mobile-book-btn { display: none; background: var(--blue-dark); color: white; padding: 1rem 2.4rem; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1rem; border: none; cursor: pointer; text-decoration: none; border-radius: 50px; box-shadow: 0 6px 20px rgba(34,113,163,0.3); transition: all 0.25s; }
         .mobile-book-btn:hover { background: var(--blue); transform: translateY(-2px); }
 
-        .hero-circle-btn {
-          position: absolute; right: 8%; top: 50%; transform: translateY(-50%);
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          width: 220px; height: 220px; border-radius: 50%;
-          background: radial-gradient(circle at 40% 35%, #4a9eca, #2271a3);
-          border: none; box-shadow: 0 10px 40px rgba(34,113,163,0.4);
-          text-decoration: none; cursor: pointer;
-          transition: transform 0.3s, box-shadow 0.3s;
-          gap: 0.6rem; z-index: 2;
-        }
+        .hero-circle-btn { position: absolute; right: 8%; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #4a9eca, #2271a3); border: none; box-shadow: 0 10px 40px rgba(34,113,163,0.4); text-decoration: none; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; gap: 0.6rem; z-index: 2; }
         .hero-circle-btn:hover { transform: translateY(-50%) scale(1.05); box-shadow: 0 16px 50px rgba(34,113,163,0.5); }
         .hero-circle-btn-icon { font-size: 3rem; line-height: 1; }
         .hero-circle-btn-label { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: white; font-weight: 600; font-family: 'DM Sans', sans-serif; text-align: center; }
@@ -248,12 +199,52 @@ export default function Home() {
         .footer-logo span { color: var(--ice); }
         .footer-text { font-size: 0.8rem; color: rgba(255,255,255,0.3); font-weight: 300; }
 
-        .chat-trigger { position: fixed; bottom: 2rem; right: 2rem; z-index: 200; width: 58px; height: 58px; background: var(--blue-dark); border: none; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 4px 20px rgba(34,113,163,0.4); animation: pulse 2.5s infinite; transition: transform 0.2s, background 0.2s; }
-        .chat-trigger:hover { transform: scale(1.1); background: var(--blue); animation: none; }
+        /* CHAT TRIGGER WRAPPER */
+        .chat-wrapper {
+          position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
+          display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem;
+        }
+
+        /* SPEECH BUBBLE */
+        .chat-bubble {
+          background: white;
+          color: var(--blue-dark);
+          font-family: 'DM Sans', sans-serif;
+          font-weight: 600; font-size: 0.82rem;
+          padding: 0.5rem 1rem;
+          border-radius: 20px 20px 4px 20px;
+          box-shadow: 0 4px 16px rgba(34,113,163,0.18);
+          border: 1.5px solid var(--snow3);
+          white-space: nowrap;
+          animation: bubblePop 0.4s cubic-bezier(0.34,1.56,0.64,1), bubbleFloat 3s ease-in-out 0.4s infinite;
+          cursor: pointer;
+        }
+        @keyframes bubblePop {
+          0% { transform: scale(0); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes bubbleFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+
+        /* MASCOT BUTTON */
+        .chat-trigger {
+          width: 80px; height: 80px;
+          background: transparent; border: none; cursor: pointer;
+          border-radius: 50%; padding: 0;
+          box-shadow: 0 6px 24px rgba(34,113,163,0.35);
+          animation: pulse 2.5s infinite;
+          transition: transform 0.2s;
+        }
+        .chat-trigger img { width: 80px; height: 80px; object-fit: cover; object-position: center 15%; border-radius: 50%; display: block; pointer-events: none; }
+        .chat-trigger:hover { transform: scale(1.1); animation: none; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34,113,163,0.4); } 70% { box-shadow: 0 0 0 14px rgba(34,113,163,0); } 100% { box-shadow: 0 0 0 0 rgba(34,113,163,0); } }
 
-        .chat-modal { position: fixed; bottom: 5.5rem; right: 2rem; z-index: 200; width: 340px; background: white; border: 1px solid var(--snow3); border-radius: 20px; box-shadow: 0 20px 60px rgba(74,158,202,0.2); overflow: hidden; }
+        .chat-modal { position: fixed; bottom: 7rem; right: 2rem; z-index: 200; width: 340px; background: white; border: 1px solid var(--snow3); border-radius: 20px; box-shadow: 0 20px 60px rgba(74,158,202,0.2); overflow: hidden; }
         .chat-header { background: var(--blue-dark); padding: 1rem 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header-left { display: flex; align-items: center; gap: 0.7rem; }
+        .chat-header-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: center 15%; border: 2px solid rgba(255,255,255,0.3); pointer-events: none; }
         .chat-header-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: white; }
         .chat-header-sub { font-size: 0.72rem; color: rgba(255,255,255,0.55); font-weight: 300; margin-top: 0.1rem; }
         .chat-close { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 1.1rem; }
@@ -277,17 +268,13 @@ export default function Home() {
           section { padding: 4rem 1.2rem; }
           footer { padding: 2rem 1.2rem; flex-direction: column; text-align: center; }
           .chat-modal { right: 0.8rem; left: 0.8rem; width: auto; }
+          .chat-wrapper { right: 1rem; bottom: 1rem; }
         }
       `}</style>
 
       <Snowflakes />
-
-      {/* DEMO BANNER */}
       <div className="demo-banner">{tx.demo}</div>
-
-      {showBooked && (
-        <div className="booking-banner">{tx.booked}</div>
-      )}
+      {showBooked && <div className="booking-banner">{tx.booked}</div>}
 
       <nav className={scrolled ? 'scrolled' : ''}>
         <div className="nav-inner">
@@ -319,12 +306,7 @@ export default function Home() {
         <div className="section-eyebrow">{tx.howLabel}</div>
         <h2 className="section-title">{tx.howTitle} <em>{tx.howTitleEm}</em></h2>
         <div className="how-grid">
-          {[
-            { n: '01', icon: '📲' },
-            { n: '02', icon: '🚚' },
-            { n: '03', icon: '🔧' },
-            { n: '04', icon: '🏠' },
-          ].map((s, i) => (
+          {[{ n: '01', icon: '📲' },{ n: '02', icon: '🚚' },{ n: '03', icon: '🔧' },{ n: '04', icon: '🏠' }].map((s, i) => (
             <div className="how-step" key={s.n}>
               <div className="step-num">{s.n}</div>
               <span className="step-icon">{s.icon}</span>
@@ -367,8 +349,8 @@ export default function Home() {
         <h2 className="section-title">{tx.teamTitle} <em>{tx.teamTitleEm}</em></h2>
         <div className="team-grid">
           {[
-            { img: '/Julia.png',  name: 'Julia Pummer',  role: lang === 'en' ? 'Owner' : 'Tulajdonos',           pos: 'center top' },
-            { img: '/Tamara.png', name: 'Tamara Szabó',  role: 'CEO',                                             pos: 'center 15%' },
+            { img: '/Julia.png',  name: 'Julia Pummer',  role: lang === 'en' ? 'Owner' : 'Tulajdonos',                pos: 'center top' },
+            { img: '/Tamara.png', name: 'Tamara Szabó',  role: 'CEO',                                                  pos: 'center 15%' },
             { img: '/Farouk.png', name: 'Farouk Aziz',   role: lang === 'en' ? 'Product Manager' : 'Termékmenedzser', pos: 'center top' },
           ].map((m, i) => (
             <div className="team-card" key={i}>
@@ -390,8 +372,17 @@ export default function Home() {
         <div className="footer-text">{tx.footer}</div>
       </footer>
 
-      <button className="chat-trigger" onClick={() => setChatOpen(true)} title="Chat">💬</button>
-      {chatOpen && <ChatModal onClose={() => setChatOpen(false)} tx={tx} />}
+      {/* CHAT WRAPPER: bubble + mascot button */}
+      <div className="chat-wrapper">
+        {showBubble && !chatOpen && (
+          <div className="chat-bubble" onClick={handleOpenChat}>{tx.bubble}</div>
+        )}
+        <button className="chat-trigger" onClick={handleOpenChat} title="Chat with Skieasy">
+          <img src="/mascot.png" alt="Skieasy" />
+        </button>
+      </div>
+
+      {chatOpen && <ChatModal onClose={() => { setChatOpen(false); setShowBubble(true); }} tx={tx} />}
     </>
   );
 }
@@ -425,9 +416,7 @@ function Snowflakes() {
 }
 
 function ChatModal({ onClose, tx }: { onClose: () => void; tx: typeof t.en }) {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: tx.chatWelcome }
-  ]);
+  const [messages, setMessages] = useState([{ role: 'assistant', content: tx.chatWelcome }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -451,9 +440,12 @@ function ChatModal({ onClose, tx }: { onClose: () => void; tx: typeof t.en }) {
   return (
     <div className="chat-modal">
       <div className="chat-header">
-        <div>
-          <div className="chat-header-title">{tx.chatTitle}</div>
-          <div className="chat-header-sub">{tx.chatSub}</div>
+        <div className="chat-header-left">
+          <img src="/mascot.png" alt="Skieasy" className="chat-header-avatar" />
+          <div>
+            <div className="chat-header-title">{tx.chatTitle}</div>
+            <div className="chat-header-sub">{tx.chatSub}</div>
+          </div>
         </div>
         <button className="chat-close" onClick={onClose}>✕</button>
       </div>
