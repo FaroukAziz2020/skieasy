@@ -10,26 +10,26 @@ const t = {
     name: 'Full Name', nameP: 'János Kovács',
     phone: 'Phone Number', phoneP: '+36 30 123 4567',
     address: 'Pickup Address', addressP: 'Budapest, Váci út 1, 1133',
-    equipment: 'Equipment', equipP: 'Select equipment type',
-    ski: 'Ski', snowboard: 'Snowboard',
+    equipLabel: 'Equipment & Quantity',
+    skiLabel: 'Ski (adult)', skiChildLabel: "Children's Ski / Snowblade (≤130cm)", snowboardLabel: 'Snowboard',
     service: 'Service Type', serviceP: 'Select a service',
-    full: 'Full Service (wax + edges) — 17 900 HUF',
-    wax: 'Wax Only — 7 600 HUF',
-    edge: 'Edge Tuning — 10 200 HUF',
-    pickupOnly: 'Pickup from Shop Only — 2 700 HUF',
-    returnOnly: 'Deliver to Shop Only — 2 700 HUF',
-    shopGroupLabel: '— Shop Services —',
-    fullGroupLabel: '— Full Service —',
-    shopName: 'Shop Name', shopNameP: 'Shop name (Budapest only)',
-    shopNote: '⚠️ Only available within Budapest',
+    smallService: 'Small Service (edge sharpening + waxing)',
+    fullService: 'Full Service (small service + base restoration)',
+    pickupShop: 'Pickup From Shop Only — 2 400 HUF',
+    returnShop: 'Deliver To Shop Only — 2 400 HUF',
+    shopGroup: '— Shop Services —',
+    mainGroup: '— Home Pickup —',
     submit: 'Confirm Booking ❄',
+    discountLabel: 'Multi-equipment discount',
+    discount2: '2 pairs → 5% discount',
+    discount3: '3+ pairs → 10% discount',
     expectTitle: 'What to expect',
     expect: ['We confirm within a few hours', 'Pickup within 1–2 business days', 'Service takes 24–48 hours', 'Equipment returned to your door'],
-    feeTitle: 'Pricing',
-    feeDesc: 'All prices include pickup & delivery (4 500 HUF). Shop-only services are 60% of standard delivery price.',
+    feeTitle: 'Pricing (HUF)',
     cancel: 'Cancellation: Late cancellation (<24h) or no-show may incur up to 50% of the service fee.',
     demo: '⚠️ DEMO WEBSITE — NOT FOR SERVICE',
     langBtn: '🇭🇺 HU',
+    pairsLabel: 'pairs',
   },
   hu: {
     back: '← Vissza a főoldalra',
@@ -39,33 +39,42 @@ const t = {
     name: 'Teljes név', nameP: 'Kovács János',
     phone: 'Telefonszám', phoneP: '+36 30 123 4567',
     address: 'Felvételi cím', addressP: 'Budapest, Váci út 1, 1133',
-    equipment: 'Felszerelés', equipP: 'Válassz felszerelést',
-    ski: 'Síléc', snowboard: 'Snowboard',
+    equipLabel: 'Felszerelés és mennyiség',
+    skiLabel: 'Síléc (felnőtt)', skiChildLabel: 'Gyermek síléc / Snowblade (≤130cm)', snowboardLabel: 'Snowboard',
     service: 'Szolgáltatás típusa', serviceP: 'Válassz szolgáltatást',
-    full: 'Teljes szerviz (wax + él) — 17 900 HUF',
-    wax: 'Csak wax — 7 600 HUF',
-    edge: 'Élezés — 10 200 HUF',
-    pickupOnly: 'Csak felvétel a boltból — 2 700 HUF',
-    returnOnly: 'Csak visszaszállítás a boltba — 2 700 HUF',
-    shopGroupLabel: '— Bolti Szolgáltatások —',
-    fullGroupLabel: '— Teljes Szerviz —',
-    shopName: 'Bolt neve', shopNameP: 'Bolt neve (csak Budapest)',
-    shopNote: '⚠️ Csak Budapesten elérhető',
+    smallService: 'Kis szerviz (élezés + waxolás)',
+    fullService: 'Teljes szerviz (kis szerviz + talpfelújítás)',
+    pickupShop: 'Csak felvétel a boltból — 2 400 HUF',
+    returnShop: 'Csak visszaszállítás a boltba — 2 400 HUF',
+    shopGroup: '— Bolti Szolgáltatások —',
+    mainGroup: '— Háztól házig —',
     submit: 'Foglalás megerősítése ❄',
+    discountLabel: 'Több felszerelés kedvezmény',
+    discount2: '2 pár → 5% kedvezmény',
+    discount3: '3+ pár → 10% kedvezmény',
     expectTitle: 'Mire számíthatsz',
     expect: ['Néhány órán belül megerősítjük', 'Felvétel 1–2 munkanapon belül', 'Szerviz 24–48 órát vesz igénybe', 'Felszerelés visszaszállítva az ajtódhoz'],
-    feeTitle: 'Árak',
-    feeDesc: 'Minden ár tartalmazza a felvételt és szállítást (4 500 HUF). A bolti szolgáltatások az alap szállítási ár 60%-a.',
+    feeTitle: 'Árak (HUF)',
     cancel: 'Lemondás: Késői lemondás (<24 óra) vagy meg nem jelenés esetén a díj 50%-a felszámítható.',
     demo: '⚠️ DEMO WEBOLDAL — NEM VALÓDI SZOLGÁLTATÁS',
     langBtn: '🇬🇧 EN',
+    pairsLabel: 'pár',
   }
 };
+
+// Prices per equipment type per service
+const PRICES = {
+  small: { ski: 12500, skiChild: 10000, snowboard: 14000 },
+  full:  { ski: 14000, skiChild: 12000, snowboard: 15000 },
+};
+const DELIVERY = 4000;
 
 export default function Book() {
   const [lang, setLang] = useState<'en'|'hu'>('en');
   const [selectedService, setSelectedService] = useState('');
-  const [shopName, setShopName] = useState('');
+  const [skiCount, setSkiCount] = useState(0);
+  const [skiChildCount, setSkiChildCount] = useState(0);
+  const [snowboardCount, setSnowboardCount] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem('skieasy-lang');
@@ -78,7 +87,25 @@ export default function Book() {
   };
 
   const tx = t[lang];
-  const isShopService = selectedService === 'Pickup From Shop Only' || selectedService === 'Deliver To Shop Only';
+
+  const totalPairs = skiCount + skiChildCount + snowboardCount;
+  const discountPct = totalPairs >= 3 ? 10 : totalPairs === 2 ? 5 : 0;
+
+  const calcTotal = () => {
+    if (!selectedService || totalPairs === 0) return null;
+    const p = selectedService === 'Small Service' ? PRICES.small : PRICES.full;
+    const base = skiCount * p.ski + skiChildCount * p.skiChild + snowboardCount * p.snowboard;
+    const discounted = Math.round(base * (1 - discountPct / 100));
+    return { base, discounted, delivery: DELIVERY, total: discounted + DELIVERY };
+  };
+
+  const totals = calcTotal();
+
+  const equipSummary = [
+    skiCount > 0 ? `${skiCount}x Ski` : '',
+    skiChildCount > 0 ? `${skiChildCount}x Child Ski` : '',
+    snowboardCount > 0 ? `${snowboardCount}x Snowboard` : '',
+  ].filter(Boolean).join(', ');
 
   return (
     <>
@@ -115,19 +142,39 @@ export default function Book() {
         .form-card { background: white; border: 1px solid var(--snow3); border-radius: 20px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(74,158,202,0.08); }
         .form-group { margin-bottom: 1.4rem; }
         label { display: block; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue-dark); font-weight: 500; margin-bottom: 0.5rem; }
-        input[type="text"], input[type="tel"], select { width: 100%; padding: 0.85rem 1rem; background: var(--snow2); border: 1.5px solid var(--snow3); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; border-radius: 10px; transition: border-color 0.2s, background 0.2s; -webkit-appearance: none; appearance: none; }
+        input[type="text"], input[type="tel"], input[type="hidden"], select { width: 100%; padding: 0.85rem 1rem; background: var(--snow2); border: 1.5px solid var(--snow3); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; border-radius: 10px; transition: border-color 0.2s, background 0.2s; -webkit-appearance: none; appearance: none; }
         input[type="text"]:focus, input[type="tel"]:focus, select:focus { border-color: var(--blue); background: white; }
         input::placeholder { color: var(--text-light); }
         select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a9eca' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-color: var(--snow2); }
         select option { background: white; color: var(--text); }
-        select optgroup { color: var(--text-light); font-style: normal; font-size: 0.8rem; }
 
+        /* COUNTER ROW */
+        .counter-group { margin-bottom: 1rem; }
+        .counter-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; background: var(--snow2); border: 1.5px solid var(--snow3); border-radius: 10px; margin-bottom: 0.5rem; }
+        .counter-label { font-size: 0.9rem; color: var(--text); font-weight: 400; }
+        .counter-label small { display: block; font-size: 0.72rem; color: var(--text-light); font-weight: 300; }
+        .counter-controls { display: flex; align-items: center; gap: 0.6rem; }
+        .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--blue); background: white; color: var(--blue-dark); font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; line-height: 1; }
+        .counter-btn:hover { background: var(--blue-dark); color: white; border-color: var(--blue-dark); }
+        .counter-val { font-size: 1rem; font-weight: 600; color: var(--blue-dark); min-width: 20px; text-align: center; }
 
-        .submit-btn { width: 100%; padding: 1rem; background: var(--blue-dark); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1rem; color: white; border-radius: 50px; transition: background 0.2s, transform 0.2s; margin-top: 0.5rem; box-shadow: 0 6px 20px rgba(34,113,163,0.3); }
+        /* DISCOUNT BADGE */
+        .discount-badge { margin-top: 0.6rem; padding: 0.5rem 0.9rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; text-align: center; }
+        .discount-badge.active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .discount-badge.none { background: var(--snow2); color: var(--text-light); border: 1px solid var(--snow3); font-weight: 400; font-size: 0.78rem; }
+
+        /* TOTAL BOX */
+        .total-box { margin-top: 1rem; padding: 1rem 1.2rem; background: var(--snow2); border: 1.5px solid var(--blue); border-radius: 12px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-mid); padding: 0.25rem 0; }
+        .total-row.final { font-size: 1rem; font-weight: 700; color: var(--blue-dark); border-top: 1px solid var(--snow3); margin-top: 0.4rem; padding-top: 0.5rem; }
+        .total-row .strike { text-decoration: line-through; color: var(--text-light); font-size: 0.8rem; }
+
+        .submit-btn { width: 100%; padding: 1rem; background: var(--blue-dark); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1rem; color: white; border-radius: 50px; transition: background 0.2s, transform 0.2s; margin-top: 1rem; box-shadow: 0 6px 20px rgba(34,113,163,0.3); }
         .submit-btn:hover { background: var(--blue); transform: translateY(-1px); }
+        .submit-btn:disabled { background: var(--text-light); cursor: not-allowed; transform: none; box-shadow: none; }
 
         .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
-        .info-card { background: white; border: 1px solid var(--snow3); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(74,158,202,0.06); }
+        .info-card { background: white; border: 1px solid var(--snow3); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(74,158,202,0.06); overflow: hidden; word-break: break-word; }
         .info-card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 0.8rem; }
         .info-card p { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; margin-bottom: 0.8rem; }
         .info-list { list-style: none; }
@@ -137,12 +184,17 @@ export default function Book() {
         .cancel-note { padding: 1rem 1.2rem; border: 1px solid var(--snow3); border-left: 3px solid var(--blue); background: var(--snow2); border-radius: 0 12px 12px 0; font-size: 0.8rem; color: var(--text-mid); line-height: 1.6; }
         .cancel-note strong { color: var(--blue-dark); }
 
-        .price-table { width: 100%; border-collapse: collapse; }
-        .price-table tr { border-bottom: 1px solid var(--snow3); }
-        .price-table tr:last-child { border-bottom: none; }
-        .price-table td { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); padding: 0.45rem 0; line-height: 1.4; }
-        .price-table td:last-child { text-align: right; font-weight: 600; color: var(--blue-dark); white-space: nowrap; padding-left: 0.5rem; }
-        .price-table tr.divider td { padding-top: 0.7rem; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); border-bottom: none; }
+        .price-list { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .price-row { background: var(--snow2); border-radius: 10px; padding: 0.7rem 0.9rem; }
+        .price-row-name { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+        .price-row-cols { display: flex; justify-content: space-between; gap: 0.3rem; }
+        .price-col { text-align: center; flex: 1; }
+        .price-col-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-light); margin-bottom: 0.15rem; }
+        .price-col-val { font-size: 0.82rem; font-weight: 600; color: var(--blue-dark); white-space: nowrap; }
+        .price-row-single { display: flex; justify-content: space-between; align-items: center; }
+        .price-row-single span:last-child { font-size: 0.85rem; font-weight: 700; color: var(--blue-dark); }
+        .discount-info { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--snow3); font-size: 0.78rem; color: var(--text-mid); font-weight: 300; line-height: 1.7; }
+        .discount-info span { color: #166534; font-weight: 700; }
       `}</style>
 
       <div className="demo-banner">{tx.demo}</div>
@@ -168,6 +220,7 @@ export default function Book() {
             target="hidden_iframe"
             onSubmit={() => setTimeout(() => window.location.href = '/?booked=1', 500)}
           >
+            {/* Personal details */}
             <div className="form-group">
               <label htmlFor="name">{tx.name} *</label>
               <input type="text" id="name" name="entry.60845147" placeholder={tx.nameP} required />
@@ -180,47 +233,102 @@ export default function Book() {
               <label htmlFor="address">{tx.address} *</label>
               <input type="text" id="address" name="entry.265692932" placeholder={tx.addressP} required />
             </div>
-            <div className="form-group">
-              <label htmlFor="equipment">{tx.equipment} *</label>
-              <select id="equipment" name="entry.832485945" required>
-                <option value="">{tx.equipP}</option>
-                <option value="Ski">{tx.ski}</option>
-                <option value="Snowboard">{tx.snowboard}</option>
-              </select>
-            </div>
+
+            {/* Service type */}
             <div className="form-group">
               <label htmlFor="service">{tx.service} *</label>
-              <select
-                id="service"
-                name="entry.1172623689"
-                required
-                onChange={e => { setSelectedService(e.target.value); setShopName(''); }}
-              >
+              <select id="service" name="entry.1172623689" required onChange={e => setSelectedService(e.target.value)}>
                 <option value="">{tx.serviceP}</option>
-                <optgroup label={tx.fullGroupLabel}>
-                  <option value="Full Service (wax + edges)">{tx.full}</option>
-                  <option value="Wax Only">{tx.wax}</option>
-                  <option value="Edge Tuning">{tx.edge}</option>
+                <optgroup label={tx.mainGroup}>
+                <option value="Small Service">{tx.smallService}</option>
+                <option value="Full Service">{tx.fullService}</option>
                 </optgroup>
-                <optgroup label={tx.shopGroupLabel}>
-                  <option value="Pickup From Shop Only">{tx.pickupOnly}</option>
-                  <option value="Deliver To Shop Only">{tx.returnOnly}</option>
+                <optgroup label={tx.shopGroup}>
+                  <option value="Pickup From Shop Only">{tx.pickupShop}</option>
+                  <option value="Deliver To Shop Only">{tx.returnShop}</option>
                 </optgroup>
               </select>
             </div>
 
+            {/* Equipment counters */}
             <div className="form-group">
-              <label htmlFor="shopname">{tx.shopName} *</label>
-              <input
-                type="text"
-                id="shopname"
-                name="entry.397459118"
-                placeholder={tx.shopNameP}
-                required
-              />
+              <label>{tx.equipLabel} *</label>
+              <div className="counter-group">
+                {/* Ski adult */}
+                <div className="counter-row">
+                  <div className="counter-label">{tx.skiLabel}</div>
+                  <div className="counter-controls">
+                    <button type="button" className="counter-btn" onClick={() => setSkiCount(Math.max(0, skiCount - 1))}>−</button>
+                    <span className="counter-val">{skiCount}</span>
+                    <button type="button" className="counter-btn" onClick={() => setSkiCount(skiCount + 1)}>+</button>
+                  </div>
+                </div>
+                {/* Children ski */}
+                <div className="counter-row">
+                  <div className="counter-label">
+                    {tx.skiChildLabel}
+                    <small>≤ 130 cm</small>
+                  </div>
+                  <div className="counter-controls">
+                    <button type="button" className="counter-btn" onClick={() => setSkiChildCount(Math.max(0, skiChildCount - 1))}>−</button>
+                    <span className="counter-val">{skiChildCount}</span>
+                    <button type="button" className="counter-btn" onClick={() => setSkiChildCount(skiChildCount + 1)}>+</button>
+                  </div>
+                </div>
+                {/* Snowboard */}
+                <div className="counter-row">
+                  <div className="counter-label">{tx.snowboardLabel}</div>
+                  <div className="counter-controls">
+                    <button type="button" className="counter-btn" onClick={() => setSnowboardCount(Math.max(0, snowboardCount - 1))}>−</button>
+                    <span className="counter-val">{snowboardCount}</span>
+                    <button type="button" className="counter-btn" onClick={() => setSnowboardCount(snowboardCount + 1)}>+</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Discount badge */}
+              {totalPairs >= 2
+                ? <div className="discount-badge active">🎉 {discountPct}% {lang === 'en' ? 'discount applied!' : 'kedvezmény érvényes!'}</div>
+                : <div className="discount-badge none">{tx.discount2} · {tx.discount3}</div>
+              }
             </div>
 
-            <button type="submit" className="submit-btn">{tx.submit}</button>
+            {/* Live total */}
+            {totals && (
+              <div className="total-box">
+                {discountPct > 0 && (
+                  <div className="total-row">
+                    <span>{lang === 'en' ? 'Service subtotal' : 'Szerviz részösszeg'}</span>
+                    <span><span className="strike">{totals.base.toLocaleString()} HUF</span> → {totals.discounted.toLocaleString()} HUF</span>
+                  </div>
+                )}
+                {discountPct === 0 && (
+                  <div className="total-row">
+                    <span>{lang === 'en' ? 'Service subtotal' : 'Szerviz részösszeg'}</span>
+                    <span>{totals.base.toLocaleString()} HUF</span>
+                  </div>
+                )}
+                <div className="total-row">
+                  <span>{lang === 'en' ? 'Pickup & delivery' : 'Felvétel & szállítás'}</span>
+                  <span>{totals.delivery.toLocaleString()} HUF</span>
+                </div>
+                <div className="total-row final">
+                  <span>{lang === 'en' ? 'Estimated total' : 'Becsült összeg'}</span>
+                  <span>{totals.total.toLocaleString()} HUF</span>
+                </div>
+              </div>
+            )}
+
+            {/* Hidden fields to pass equipment summary to Google Form */}
+            <input type="hidden" name="entry.832485945" value={equipSummary} />
+
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={totalPairs === 0 || !selectedService}
+            >
+              {tx.submit}
+            </button>
           </form>
 
           <div className="sidebar">
@@ -233,19 +341,36 @@ export default function Book() {
 
             <div className="info-card">
               <div className="info-card-title">{tx.feeTitle}</div>
-              <p>{tx.feeDesc}</p>
-              <table className="price-table">
-                <tbody>
-                  <tr className="divider"><td colSpan={2}>{lang === 'en' ? 'Door-to-door' : 'Háztól házig'}</td></tr>
-                  <tr><td>{lang === 'en' ? 'Pickup & delivery' : 'Felvétel & szállítás'}</td><td>4 500 HUF</td></tr>
-                  <tr><td>{lang === 'en' ? 'Wax Only' : 'Csak wax'}</td><td>7 600 HUF</td></tr>
-                  <tr><td>{lang === 'en' ? 'Edge Tuning' : 'Élezés'}</td><td>10 200 HUF</td></tr>
-                  <tr><td>{lang === 'en' ? 'Full Service' : 'Teljes szerviz'}</td><td>17 900 HUF</td></tr>
-                  <tr className="divider"><td colSpan={2}>{lang === 'en' ? 'Shop services' : 'Bolti szolgáltatások'}</td></tr>
-                  <tr><td>{lang === 'en' ? 'Shop pickup only' : 'Csak bolti felvétel'}</td><td>2 700 HUF</td></tr>
-                  <tr><td>{lang === 'en' ? 'Deliver to shop only' : 'Visszavitel a boltba'}</td><td>2 700 HUF</td></tr>
-                </tbody>
-              </table>
+              <div className="price-list">
+                <div className="price-row">
+                  <div className="price-row-name">{lang === 'en' ? 'Small Service' : 'Kis Szerviz'}</div>
+                  <div className="price-row-cols">
+                    <div className="price-col"><div className="price-col-label">{lang === 'en' ? 'Ski' : 'Síléc'}</div><div className="price-col-val">12 500</div></div>
+                    <div className="price-col"><div className="price-col-label">{lang === 'en' ? 'Child' : 'Gyermek'}</div><div className="price-col-val">10 000</div></div>
+                    <div className="price-col"><div className="price-col-label">Board</div><div className="price-col-val">14 000</div></div>
+                  </div>
+                </div>
+                <div className="price-row">
+                  <div className="price-row-name">{lang === 'en' ? 'Full Service' : 'Teljes Szerviz'}</div>
+                  <div className="price-row-cols">
+                    <div className="price-col"><div className="price-col-label">{lang === 'en' ? 'Ski' : 'Síléc'}</div><div className="price-col-val">14 000</div></div>
+                    <div className="price-col"><div className="price-col-label">{lang === 'en' ? 'Child' : 'Gyermek'}</div><div className="price-col-val">12 000</div></div>
+                    <div className="price-col"><div className="price-col-label">Board</div><div className="price-col-val">15 000</div></div>
+                  </div>
+                </div>
+                <div className="price-row">
+                  <div className="price-row-single">
+                    <span className="price-row-name" style={{marginBottom:0}}>{lang === 'en' ? 'Pickup & delivery' : 'Felvétel & szállítás'}</span>
+                    <span>4 000 HUF</span>
+                  </div>
+                </div>
+              </div>
+              <div className="discount-info" style={{marginBottom:'0.5rem'}}>
+                {lang === 'en' ? 'Shop-only services are 60% of standard delivery price.' : 'A bolti szolgáltatások az alap szállítási díj 60%-a.'}
+              </div>
+              <div className="discount-info">
+                <span>5%</span> {lang === 'en' ? 'off for 2 pairs' : 'kedvezmény 2 pártól'} · <span>10%</span> {lang === 'en' ? 'off for 3+' : 'kedvezmény 3+-tól'}
+              </div>
             </div>
 
             <div className="cancel-note">
