@@ -10,13 +10,15 @@ const t = {
     name: 'Full Name', nameP: 'János Kovács',
     phone: 'Phone Number', phoneP: '+36 30 123 4567',
     address: 'Pickup Address', addressP: 'Budapest, Váci út 1, 1133',
-    equipLabel: 'Equipment & Quantity',
-    skiLabel: 'Ski (adult)', skiChildLabel: "Children's Ski / Snowblade (≤130cm)", snowboardLabel: 'Snowboard',
-    service: 'Service Type', serviceP: 'Select a service',
-    smallService: 'Small Service (edge sharpening + waxing)',
-    fullService: 'Full Service (small service + base restoration)',
+    equipLabel: 'Equipment & Service',
+    equipSub: 'Add each item and choose its service',
+    addSki: '+ Add Ski (adult)',
+    addSkiChild: '+ Add Child Ski / Snowblade (≤130cm)',
+    addSnowboard: '+ Add Snowboard',
+    small: 'Small (edge sharpening + waxing)', full: 'Full (small service + base restoration)',
+    smallFull: 'Small Service', fullFull: 'Full Service',
+    remove: 'Remove',
     submit: 'Confirm Booking ❄',
-    discountLabel: 'Multi-equipment discount',
     discount2: '2 pairs → 5% discount',
     discount3: '3+ pairs → 10% discount',
     expectTitle: 'What to expect',
@@ -25,7 +27,9 @@ const t = {
     cancel: 'Cancellation: Late cancellation (<24h) or no-show may incur up to 50% of the service fee.',
     demo: '⚠️ DEMO WEBSITE — NOT FOR SERVICE',
     langBtn: '🇭🇺 HU',
-    pairsLabel: 'pairs',
+    estimatedTotal: 'Estimated total',
+    serviceSubtotal: 'Service subtotal',
+    noItems: 'Add at least one item above',
   },
   hu: {
     back: '← Vissza a főoldalra',
@@ -35,13 +39,15 @@ const t = {
     name: 'Teljes név', nameP: 'Kovács János',
     phone: 'Telefonszám', phoneP: '+36 30 123 4567',
     address: 'Felvételi cím', addressP: 'Budapest, Váci út 1, 1133',
-    equipLabel: 'Felszerelés és mennyiség',
-    skiLabel: 'Síléc (felnőtt)', skiChildLabel: 'Gyermek síléc / Snowblade (≤130cm)', snowboardLabel: 'Snowboard',
-    service: 'Szolgáltatás típusa', serviceP: 'Válassz szolgáltatást',
-    smallService: 'Kis szerviz (élezés + waxolás)',
-    fullService: 'Teljes szerviz (kis szerviz + talpfelújítás)',
+    equipLabel: 'Felszerelés és szerviz',
+    equipSub: 'Adj hozzá minden tételt és válassz szervizet',
+    addSki: '+ Síléc hozzáadása (felnőtt)',
+    addSkiChild: '+ Gyermek síléc / Snowblade (≤130cm)',
+    addSnowboard: '+ Snowboard hozzáadása',
+    small: 'Kis (élezés + waxolás)', full: 'Teljes (kis szerviz + talpfelújítás)',
+    smallFull: 'Kis szerviz', fullFull: 'Teljes szerviz',
+    remove: 'Törlés',
     submit: 'Foglalás megerősítése ❄',
-    discountLabel: 'Több felszerelés kedvezmény',
     discount2: '2 pár → 5% kedvezmény',
     discount3: '3+ pár → 10% kedvezmény',
     expectTitle: 'Mire számíthatsz',
@@ -50,52 +56,54 @@ const t = {
     cancel: 'Lemondás: Késői lemondás (<24 óra) vagy meg nem jelenés esetén a díj 50%-a felszámítható.',
     demo: '⚠️ DEMO WEBOLDAL — NEM VALÓDI SZOLGÁLTATÁS',
     langBtn: '🇬🇧 EN',
-    pairsLabel: 'pár',
+    estimatedTotal: 'Becsült összeg',
+    serviceSubtotal: 'Szerviz részösszeg',
+    noItems: 'Adj hozzá legalább egy tételt',
   }
 };
 
-// Prices per equipment type per service
 const PRICES = {
   small: { ski: 12500, skiChild: 10000, snowboard: 14000 },
   full:  { ski: 14000, skiChild: 12000, snowboard: 15000 },
 };
+
+type EquipType = 'ski' | 'skiChild' | 'snowboard';
+type ServiceType = 'small' | 'full';
+interface Item { id: number; type: EquipType; service: ServiceType; }
+
+let nextId = 1;
+
 export default function Book() {
   const [lang, setLang] = useState<'en'|'hu'>('en');
-  const [selectedService, setSelectedService] = useState('');
-  const [skiCount, setSkiCount] = useState(0);
-  const [skiChildCount, setSkiChildCount] = useState(0);
-  const [snowboardCount, setSnowboardCount] = useState(0);
+  const [items, setItems] = useState<Item[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('skieasy-lang');
     if (saved === 'hu') setLang('hu');
   }, []);
 
-  const switchLang = (l: 'en'|'hu') => {
-    setLang(l);
-    localStorage.setItem('skieasy-lang', l);
-  };
-
+  const switchLang = (l: 'en'|'hu') => { setLang(l); localStorage.setItem('skieasy-lang', l); };
   const tx = t[lang];
 
-  const totalPairs = skiCount + skiChildCount + snowboardCount;
+  const addItem = (type: EquipType) => setItems(prev => [...prev, { id: nextId++, type, service: 'small' }]);
+  const removeItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
+  const setService = (id: number, service: ServiceType) => setItems(prev => prev.map(i => i.id === id ? { ...i, service } : i));
+
+  const totalPairs = items.length;
   const discountPct = totalPairs >= 3 ? 10 : totalPairs === 2 ? 5 : 0;
 
-  const calcTotal = () => {
-    if (!selectedService || totalPairs === 0) return null;
-    const p = selectedService === 'Small Service' ? PRICES.small : PRICES.full;
-    const base = skiCount * p.ski + skiChildCount * p.skiChild + snowboardCount * p.snowboard;
-    const discounted = Math.round(base * (1 - discountPct / 100));
-    return { base, discounted };
-  };
+  const base = items.reduce((sum, item) => {
+    const p = PRICES[item.service];
+    return sum + (item.type === 'ski' ? p.ski : item.type === 'skiChild' ? p.skiChild : p.snowboard);
+  }, 0);
+  const discounted = Math.round(base * (1 - discountPct / 100));
 
-  const totals = calcTotal();
+  const typeLabel = (type: EquipType) => type === 'ski' ? (lang === 'en' ? 'Ski (adult)' : 'Síléc (felnőtt)') : type === 'skiChild' ? (lang === 'en' ? "Child's Ski / Snowblade" : 'Gyermek síléc / Snowblade') : 'Snowboard';
+  const typeEmoji = (type: EquipType) => type === 'snowboard' ? '🏂' : '🎿';
+  const unitPrice = (item: Item) => { const p = PRICES[item.service]; return item.type === 'ski' ? p.ski : item.type === 'skiChild' ? p.skiChild : p.snowboard; };
 
-  const equipSummary = [
-    skiCount > 0 ? `${skiCount}x Ski` : '',
-    skiChildCount > 0 ? `${skiChildCount}x Child Ski` : '',
-    snowboardCount > 0 ? `${snowboardCount}x Snowboard` : '',
-  ].filter(Boolean).join(', ');
+  // Build summary string for Google Form
+  const equipSummary = items.length === 0 ? '' : items.map(i => `${typeLabel(i.type)} (${i.service === 'small' ? 'Small Service' : 'Full Service'})`).join(', ');
 
   return (
     <>
@@ -132,49 +140,55 @@ export default function Book() {
         .form-card { background: white; border: 1px solid var(--snow3); border-radius: 20px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(74,158,202,0.08); }
         .form-group { margin-bottom: 1.4rem; }
         label { display: block; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue-dark); font-weight: 500; margin-bottom: 0.5rem; }
-        input[type="text"], input[type="tel"], input[type="hidden"], select { width: 100%; padding: 0.85rem 1rem; background: var(--snow2); border: 1.5px solid var(--snow3); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; border-radius: 10px; transition: border-color 0.2s, background 0.2s; -webkit-appearance: none; appearance: none; }
-        input[type="text"]:focus, input[type="tel"]:focus, select:focus { border-color: var(--blue); background: white; }
+        .label-sub { font-size: 0.75rem; color: var(--text-light); font-weight: 300; text-transform: none; letter-spacing: 0; margin-bottom: 0.8rem; display: block; margin-top: -0.3rem; }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 0.85rem 1rem; background: var(--snow2); border: 1.5px solid var(--snow3); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; border-radius: 10px; transition: border-color 0.2s, background 0.2s; }
+        input[type="text"]:focus, input[type="tel"]:focus { border-color: var(--blue); background: white; }
         input::placeholder { color: var(--text-light); }
-        select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a9eca' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-color: var(--snow2); }
-        select option { background: white; color: var(--text); }
 
-        /* COUNTER ROW */
-        .counter-group { margin-bottom: 1rem; }
-        .counter-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; background: var(--snow2); border: 1.5px solid var(--snow3); border-radius: 10px; margin-bottom: 0.5rem; }
-        .counter-label { font-size: 0.9rem; color: var(--text); font-weight: 400; }
-        .counter-label small { display: block; font-size: 0.72rem; color: var(--text-light); font-weight: 300; }
-        .counter-controls { display: flex; align-items: center; gap: 0.6rem; }
-        .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--blue); background: white; color: var(--blue-dark); font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; line-height: 1; }
-        .counter-btn:hover { background: var(--blue-dark); color: white; border-color: var(--blue-dark); }
-        .counter-val { font-size: 1rem; font-weight: 600; color: var(--blue-dark); min-width: 20px; text-align: center; }
+        /* EQUIPMENT ITEMS */
+        .equip-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.8rem; }
+        .equip-item { background: var(--snow2); border: 1.5px solid var(--snow3); border-radius: 12px; padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.8rem; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .equip-emoji { font-size: 1.3rem; flex-shrink: 0; }
+        .equip-info { flex: 1; min-width: 0; }
+        .equip-name { font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .equip-price { font-size: 0.75rem; color: var(--blue-dark); font-weight: 600; }
+        .service-toggle { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
+        .svc-btn { padding: 0.3rem 0.7rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; border: 1.5px solid var(--snow3); background: white; color: var(--text-mid); transition: all 0.15s; white-space: nowrap; text-align: center; }
+        .svc-btn.active { background: var(--blue-dark); color: white; border-color: var(--blue-dark); }
+        .remove-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 1rem; padding: 0.2rem; flex-shrink: 0; transition: color 0.15s; line-height: 1; }
+        .remove-btn:hover { color: #ef4444; }
 
-        /* DISCOUNT BADGE */
-        .discount-badge { margin-top: 0.6rem; padding: 0.5rem 0.9rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; text-align: center; }
+        /* ADD BUTTONS */
+        .add-btns { display: flex; flex-direction: column; gap: 0.4rem; }
+        .add-btn { background: white; border: 1.5px dashed var(--ice); color: var(--blue); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; padding: 0.6rem 1rem; border-radius: 10px; cursor: pointer; text-align: left; transition: all 0.15s; }
+        .add-btn:hover { border-color: var(--blue); background: var(--snow2); }
+
+        /* DISCOUNT */
+        .discount-badge { margin-top: 0.8rem; padding: 0.5rem 0.9rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; text-align: center; }
         .discount-badge.active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .discount-badge.none { background: var(--snow2); color: var(--text-light); border: 1px solid var(--snow3); font-weight: 400; font-size: 0.78rem; }
+        .discount-badge.hint { background: var(--snow2); color: var(--text-light); border: 1px solid var(--snow3); font-weight: 300; font-size: 0.75rem; }
 
-        /* TOTAL BOX */
+        /* TOTAL */
         .total-box { margin-top: 1rem; padding: 1rem 1.2rem; background: var(--snow2); border: 1.5px solid var(--blue); border-radius: 12px; }
-        .total-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-mid); padding: 0.25rem 0; }
+        .total-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-mid); padding: 0.22rem 0; }
         .total-row.final { font-size: 1rem; font-weight: 700; color: var(--blue-dark); border-top: 1px solid var(--snow3); margin-top: 0.4rem; padding-top: 0.5rem; }
-        .total-row .strike { text-decoration: line-through; color: var(--text-light); font-size: 0.8rem; }
+        .strike { text-decoration: line-through; color: var(--text-light); font-size: 0.78rem; margin-right: 0.3rem; }
 
         .submit-btn { width: 100%; padding: 1rem; background: var(--blue-dark); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1rem; color: white; border-radius: 50px; transition: background 0.2s, transform 0.2s; margin-top: 1rem; box-shadow: 0 6px 20px rgba(34,113,163,0.3); }
         .submit-btn:hover { background: var(--blue); transform: translateY(-1px); }
         .submit-btn:disabled { background: var(--text-light); cursor: not-allowed; transform: none; box-shadow: none; }
 
         .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
-        .info-card { background: white; border: 1px solid var(--snow3); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(74,158,202,0.06); overflow: hidden; word-break: break-word; }
+        .info-card { background: white; border: 1px solid var(--snow3); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(74,158,202,0.06); overflow: hidden; }
         .info-card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 0.8rem; }
-        .info-card p { font-size: 0.82rem; font-weight: 300; color: var(--text-mid); line-height: 1.6; margin-bottom: 0.8rem; }
         .info-list { list-style: none; }
         .info-list li { font-size: 0.85rem; font-weight: 300; color: var(--text-mid); padding: 0.45rem 0; border-bottom: 1px solid var(--snow3); display: flex; align-items: center; gap: 0.6rem; }
         .info-list li:last-child { border-bottom: none; }
         .info-list li::before { content: '❄'; color: var(--blue); font-size: 0.65rem; }
         .cancel-note { padding: 1rem 1.2rem; border: 1px solid var(--snow3); border-left: 3px solid var(--blue); background: var(--snow2); border-radius: 0 12px 12px 0; font-size: 0.8rem; color: var(--text-mid); line-height: 1.6; }
         .cancel-note strong { color: var(--blue-dark); }
-
-        .price-list { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .price-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
         .price-row { background: var(--snow2); border-radius: 10px; padding: 0.7rem 0.9rem; }
         .price-row-name { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
         .price-row-cols { display: flex; justify-content: space-between; gap: 0.3rem; }
@@ -210,7 +224,6 @@ export default function Book() {
             target="hidden_iframe"
             onSubmit={() => setTimeout(() => window.location.href = '/?booked=1', 500)}
           >
-            {/* Personal details */}
             <div className="form-group">
               <label htmlFor="name">{tx.name} *</label>
               <input type="text" id="name" name="entry.60845147" placeholder={tx.nameP} required />
@@ -224,90 +237,72 @@ export default function Book() {
               <input type="text" id="address" name="entry.265692932" placeholder={tx.addressP} required />
             </div>
 
-            {/* Service type */}
-            <div className="form-group">
-              <label htmlFor="service">{tx.service} *</label>
-              <select id="service" name="entry.1172623689" required onChange={e => setSelectedService(e.target.value)}>
-                <option value="">{tx.serviceP}</option>
-                <option value="Small Service">{tx.smallService}</option>
-                <option value="Full Service">{tx.fullService}</option>
-              </select>
-            </div>
-
-            {/* Equipment counters */}
+            {/* Equipment & Service */}
             <div className="form-group">
               <label>{tx.equipLabel} *</label>
-              <div className="counter-group">
-                {/* Ski adult */}
-                <div className="counter-row">
-                  <div className="counter-label">{tx.skiLabel}</div>
-                  <div className="counter-controls">
-                    <button type="button" className="counter-btn" onClick={() => setSkiCount(Math.max(0, skiCount - 1))}>−</button>
-                    <span className="counter-val">{skiCount}</span>
-                    <button type="button" className="counter-btn" onClick={() => setSkiCount(skiCount + 1)}>+</button>
-                  </div>
+              <span className="label-sub">{tx.equipSub}</span>
+
+              {/* Added items list */}
+              {items.length > 0 && (
+                <div className="equip-list">
+                  {items.map(item => (
+                    <div className="equip-item" key={item.id}>
+                      <span className="equip-emoji">{typeEmoji(item.type)}</span>
+                      <div className="equip-info">
+                        <div className="equip-name">{typeLabel(item.type)}</div>
+                        <div className="equip-price">{unitPrice(item).toLocaleString()} HUF</div>
+                      </div>
+                      <div className="service-toggle">
+                        <button type="button" className={`svc-btn${item.service === 'small' ? ' active' : ''}`} onClick={() => setService(item.id, 'small')}>{tx.small}</button>
+                        <button type="button" className={`svc-btn${item.service === 'full' ? ' active' : ''}`} onClick={() => setService(item.id, 'full')}>{tx.full}</button>
+                      </div>
+                      <button type="button" className="remove-btn" onClick={() => removeItem(item.id)} title={tx.remove}>✕</button>
+                    </div>
+                  ))}
                 </div>
-                {/* Children ski */}
-                <div className="counter-row">
-                  <div className="counter-label">
-                    {tx.skiChildLabel}
-                    <small>≤ 130 cm</small>
-                  </div>
-                  <div className="counter-controls">
-                    <button type="button" className="counter-btn" onClick={() => setSkiChildCount(Math.max(0, skiChildCount - 1))}>−</button>
-                    <span className="counter-val">{skiChildCount}</span>
-                    <button type="button" className="counter-btn" onClick={() => setSkiChildCount(skiChildCount + 1)}>+</button>
-                  </div>
-                </div>
-                {/* Snowboard */}
-                <div className="counter-row">
-                  <div className="counter-label">{tx.snowboardLabel}</div>
-                  <div className="counter-controls">
-                    <button type="button" className="counter-btn" onClick={() => setSnowboardCount(Math.max(0, snowboardCount - 1))}>−</button>
-                    <span className="counter-val">{snowboardCount}</span>
-                    <button type="button" className="counter-btn" onClick={() => setSnowboardCount(snowboardCount + 1)}>+</button>
-                  </div>
-                </div>
+              )}
+
+              {/* Add buttons */}
+              <div className="add-btns">
+                <button type="button" className="add-btn" onClick={() => addItem('ski')}>{tx.addSki}</button>
+                <button type="button" className="add-btn" onClick={() => addItem('skiChild')}>{tx.addSkiChild}</button>
+                <button type="button" className="add-btn" onClick={() => addItem('snowboard')}>{tx.addSnowboard}</button>
               </div>
 
-              {/* Discount badge */}
+              {/* Discount */}
               {totalPairs >= 2
                 ? <div className="discount-badge active">🎉 {discountPct}% {lang === 'en' ? 'discount applied!' : 'kedvezmény érvényes!'}</div>
-                : <div className="discount-badge none">{tx.discount2} · {tx.discount3}</div>
+                : <div className="discount-badge hint">{tx.discount2} · {tx.discount3}</div>
               }
             </div>
 
             {/* Live total */}
-            {totals && (
+            {items.length > 0 && (
               <div className="total-box">
-                {discountPct > 0 && (
+                {discountPct > 0 ? (
                   <div className="total-row">
-                    <span>{lang === 'en' ? 'Service subtotal' : 'Szerviz részösszeg'}</span>
-                    <span><span className="strike">{totals.base.toLocaleString()} HUF</span> → {totals.discounted.toLocaleString()} HUF</span>
+                    <span>{tx.serviceSubtotal}</span>
+                    <span><span className="strike">{base.toLocaleString()}</span>{discounted.toLocaleString()} HUF</span>
                   </div>
-                )}
-                {discountPct === 0 && (
+                ) : (
                   <div className="total-row">
-                    <span>{lang === 'en' ? 'Service subtotal' : 'Szerviz részösszeg'}</span>
-                    <span>{totals.base.toLocaleString()} HUF</span>
+                    <span>{tx.serviceSubtotal}</span>
+                    <span>{base.toLocaleString()} HUF</span>
                   </div>
                 )}
                 <div className="total-row final">
-                  <span>{lang === 'en' ? 'Estimated total' : 'Becsült összeg'}</span>
-                  <span>{totals.discounted.toLocaleString()} HUF</span>
+                  <span>{tx.estimatedTotal}</span>
+                  <span>{discounted.toLocaleString()} HUF</span>
                 </div>
               </div>
             )}
 
-            {/* Hidden fields to pass equipment summary to Google Form */}
+            {/* Hidden field for Google Form */}
             <input type="hidden" name="entry.832485945" value={equipSummary} />
+            <input type="hidden" name="entry.1172623689" value={equipSummary} />
 
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={totalPairs === 0 || !selectedService}
-            >
-              {tx.submit}
+            <button type="submit" className="submit-btn" disabled={items.length === 0}>
+              {items.length === 0 ? tx.noItems : tx.submit}
             </button>
           </form>
 
@@ -318,7 +313,6 @@ export default function Book() {
                 {tx.expect.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             </div>
-
             <div className="info-card">
               <div className="info-card-title">{tx.feeTitle}</div>
               <div className="price-list">
@@ -338,13 +332,11 @@ export default function Book() {
                     <div className="price-col"><div className="price-col-label">Board</div><div className="price-col-val">15 000</div></div>
                   </div>
                 </div>
-
               </div>
               <div className="discount-info">
                 <span>5%</span> {lang === 'en' ? 'off for 2 pairs' : 'kedvezmény 2 pártól'} · <span>10%</span> {lang === 'en' ? 'off for 3+' : 'kedvezmény 3+-tól'}
               </div>
             </div>
-
             <div className="cancel-note">
               <strong>{lang === 'en' ? 'Cancellation:' : 'Lemondás:'}</strong> {tx.cancel.replace(/^[^:]+: /, '')}
             </div>
