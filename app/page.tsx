@@ -11,15 +11,15 @@ const t = {
     steps: [
       { title: 'Book Online', desc: 'Fill in your details and choose your service. No account needed — takes 60 seconds.' },
       { title: 'We Collect', desc: 'Our team picks up your equipment directly from your home or office.' },
-      { title: 'Expert Service', desc: 'Partner workshops tune your gear — wax, edge grind, full service.' },
+      { title: 'Expert Service', desc: 'Our partner workshop tunes your gear — wax, edge grind, full service.' },
       { title: 'We Deliver', desc: 'Clean, sharp, and perfectly tuned — dropped back at your door.' },
     ],
     pricingLabel: 'Pricing', pricingTitle: "What's", pricingTitleEm: 'included',
     popular: 'Most Popular',
-    fee: '+ pickup & delivery fee',
-    waxName: 'Wax Only', waxF: ['Hot wax treatment', 'Base cleaning', '24–48h turnaround'],
-    fullName: 'Full Service', fullF: ['Wax + edge tuning', 'Base repair (minor)', 'Binding check', '24–48h turnaround'],
-    edgeName: 'Edge Tuning', edgeF: ['Side & base edge grind', 'Deburring', '24–48h turnaround'],
+    fee: 'Prices include pickup & delivery',
+    waxName: 'Small Service', waxF: ['Edge sharpening + waxing', 'Ski: 12 500 HUF', 'Child ski: 10 000 HUF', 'Snowboard: 14 000 HUF'],
+    fullName: 'Full Service', fullF: ['Small service + base restoration', 'Ski: 14 000 HUF', 'Child ski: 12 000 HUF', 'Snowboard: 15 000 HUF'],
+    edgeName: 'Multi-Equipment', edgeF: ['2 pairs → 5% discount', '3+ pairs → 10% discount', 'Applies to all services'],
     cancelNote: 'Cancellation policy: Late cancellation (under 24h) or no-show may incur up to 50% of the service fee. We\'ll always reach out first.',
     teamLabel: 'The people behind it', teamTitle: 'Our', teamTitleEm: 'team',
     footerSub: 'Budapest · Hungary',
@@ -41,15 +41,15 @@ const t = {
     steps: [
       { title: 'Foglalj Online', desc: 'Töltsd ki az adataidat és válaszd ki a szolgáltatást. Nincs szükség fiókra — 60 másodperc.' },
       { title: 'Felvesszük', desc: 'Csapatunk elveszi a felszerelésed közvetlenül otthonodból vagy irodádból.' },
-      { title: 'Szakértői Szerviz', desc: 'Partnerműhelyeink beállítják a felszerelésed — wax, élezés, teljes szerviz.' },
+      { title: 'Szakértői Szerviz', desc: 'Partnerműhelyünk beállítja a felszerelésed — wax, élezés, teljes szerviz.' },
       { title: 'Visszaszállítjuk', desc: 'Tisztán, élesen és tökéletesen beállítva — visszahozzuk az ajtódhoz.' },
     ],
     pricingLabel: 'Árak', pricingTitle: 'Mi', pricingTitleEm: 'van benne',
     popular: 'Legnépszerűbb',
-    fee: '+ felvétel & szállítási díj',
-    waxName: 'Csak Wax', waxF: ['Forró wax kezelés', 'Talp tisztítás', '24–48 óra átfutás'],
-    fullName: 'Teljes Szerviz', fullF: ['Wax + élezés', 'Kisebb talpjavítás', 'Kötés ellenőrzés', '24–48 óra átfutás'],
-    edgeName: 'Élezés', edgeF: ['Oldal- és talp élcsiszolás', 'Sorjátlanítás', '24–48 óra átfutás'],
+    fee: 'Az árak tartalmazzák a szállítást',
+    waxName: 'Kis Szerviz', waxF: ['Élezés + waxolás', 'Síléc: 12 500 HUF', 'Gyermek síléc: 10 000 HUF', 'Snowboard: 14 000 HUF'],
+    fullName: 'Teljes Szerviz', fullF: ['Kis szerviz + talpfelújítás', 'Síléc: 14 000 HUF', 'Gyermek síléc: 12 000 HUF', 'Snowboard: 15 000 HUF'],
+    edgeName: 'Több Felszerelés', edgeF: ['2 pár → 5% kedvezmény', '3+ pár → 10% kedvezmény', 'Minden szolgáltatásra érvényes'],
     cancelNote: 'Lemondási szabályzat: Késői lemondás (24 órán belül) vagy meg nem jelenés esetén a szolgáltatási díj 50%-a felszámítható. Mindig felvesszük veled a kapcsolatot.',
     teamLabel: 'Az emberek mögötte', teamTitle: 'A mi', teamTitleEm: 'csapatunk',
     footerSub: 'Budapest · Magyarország',
@@ -205,6 +205,8 @@ export default function Home() {
           display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem;
         }
 
+
+
         /* SPEECH BUBBLE */
         .chat-bubble {
           background: white;
@@ -278,7 +280,7 @@ export default function Home() {
 
       <nav className={scrolled ? 'scrolled' : ''}>
         <div className="nav-inner">
-          <div className="nav-logo">Skie<span>asy</span>-Peasy</div>
+          <div className="nav-logo">Ski<span>easy</span>-P<span>easy</span></div>
           <button className="lang-btn" onClick={() => switchLang(lang === 'en' ? 'hu' : 'en')}>{tx.langBtn}</button>
         </div>
       </nav>
@@ -323,20 +325,17 @@ export default function Home() {
         <div className="pricing-grid">
           <div className="price-card">
             <div className="price-name">{tx.waxName}</div>
-            <div className="price-amount"><sup>€</sup>15</div>
             <div className="price-includes">{tx.fee}</div>
             <ul className="price-features">{tx.waxF.map((f,i) => <li key={i}>{f}</li>)}</ul>
           </div>
           <div className="price-card featured">
             <div className="price-badge">{tx.popular}</div>
             <div className="price-name">{tx.fullName}</div>
-            <div className="price-amount"><sup>€</sup>35</div>
             <div className="price-includes">{tx.fee}</div>
             <ul className="price-features">{tx.fullF.map((f,i) => <li key={i}>{f}</li>)}</ul>
           </div>
           <div className="price-card">
             <div className="price-name">{tx.edgeName}</div>
-            <div className="price-amount"><sup>€</sup>20</div>
             <div className="price-includes">{tx.fee}</div>
             <ul className="price-features">{tx.edgeF.map((f,i) => <li key={i}>{f}</li>)}</ul>
           </div>
@@ -366,7 +365,7 @@ export default function Home() {
 
       <footer>
         <div>
-          <div className="footer-logo"><span>Skieasy</span>-Peasy</div>
+          <div className="footer-logo">Ski<span>easy</span>-P<span>easy</span></div>
           <div className="footer-text" style={{ marginTop: '0.3rem' }}>{tx.footerSub}</div>
         </div>
         <div className="footer-text">{tx.footer}</div>
@@ -374,6 +373,7 @@ export default function Home() {
 
       {/* CHAT WRAPPER: bubble + mascot button */}
       <div className="chat-wrapper">
+
         {showBubble && !chatOpen && (
           <div className="chat-bubble" onClick={handleOpenChat}>{tx.bubble}</div>
         )}

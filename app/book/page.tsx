@@ -15,10 +15,6 @@ const t = {
     service: 'Service Type', serviceP: 'Select a service',
     smallService: 'Small Service (edge sharpening + waxing)',
     fullService: 'Full Service (small service + base restoration)',
-    pickupShop: 'Pickup From Shop Only — 2 400 HUF',
-    returnShop: 'Deliver To Shop Only — 2 400 HUF',
-    shopGroup: '— Shop Services —',
-    mainGroup: '— Home Pickup —',
     submit: 'Confirm Booking ❄',
     discountLabel: 'Multi-equipment discount',
     discount2: '2 pairs → 5% discount',
@@ -44,10 +40,6 @@ const t = {
     service: 'Szolgáltatás típusa', serviceP: 'Válassz szolgáltatást',
     smallService: 'Kis szerviz (élezés + waxolás)',
     fullService: 'Teljes szerviz (kis szerviz + talpfelújítás)',
-    pickupShop: 'Csak felvétel a boltból — 2 400 HUF',
-    returnShop: 'Csak visszaszállítás a boltba — 2 400 HUF',
-    shopGroup: '— Bolti Szolgáltatások —',
-    mainGroup: '— Háztól házig —',
     submit: 'Foglalás megerősítése ❄',
     discountLabel: 'Több felszerelés kedvezmény',
     discount2: '2 pár → 5% kedvezmény',
@@ -67,8 +59,6 @@ const PRICES = {
   small: { ski: 12500, skiChild: 10000, snowboard: 14000 },
   full:  { ski: 14000, skiChild: 12000, snowboard: 15000 },
 };
-const DELIVERY = 4000;
-
 export default function Book() {
   const [lang, setLang] = useState<'en'|'hu'>('en');
   const [selectedService, setSelectedService] = useState('');
@@ -96,7 +86,7 @@ export default function Book() {
     const p = selectedService === 'Small Service' ? PRICES.small : PRICES.full;
     const base = skiCount * p.ski + skiChildCount * p.skiChild + snowboardCount * p.snowboard;
     const discounted = Math.round(base * (1 - discountPct / 100));
-    return { base, discounted, delivery: DELIVERY, total: discounted + DELIVERY };
+    return { base, discounted };
   };
 
   const totals = calcTotal();
@@ -239,14 +229,8 @@ export default function Book() {
               <label htmlFor="service">{tx.service} *</label>
               <select id="service" name="entry.1172623689" required onChange={e => setSelectedService(e.target.value)}>
                 <option value="">{tx.serviceP}</option>
-                <optgroup label={tx.mainGroup}>
                 <option value="Small Service">{tx.smallService}</option>
                 <option value="Full Service">{tx.fullService}</option>
-                </optgroup>
-                <optgroup label={tx.shopGroup}>
-                  <option value="Pickup From Shop Only">{tx.pickupShop}</option>
-                  <option value="Deliver To Shop Only">{tx.returnShop}</option>
-                </optgroup>
               </select>
             </div>
 
@@ -308,13 +292,9 @@ export default function Book() {
                     <span>{totals.base.toLocaleString()} HUF</span>
                   </div>
                 )}
-                <div className="total-row">
-                  <span>{lang === 'en' ? 'Pickup & delivery' : 'Felvétel & szállítás'}</span>
-                  <span>{totals.delivery.toLocaleString()} HUF</span>
-                </div>
                 <div className="total-row final">
                   <span>{lang === 'en' ? 'Estimated total' : 'Becsült összeg'}</span>
-                  <span>{totals.total.toLocaleString()} HUF</span>
+                  <span>{totals.discounted.toLocaleString()} HUF</span>
                 </div>
               </div>
             )}
@@ -358,15 +338,7 @@ export default function Book() {
                     <div className="price-col"><div className="price-col-label">Board</div><div className="price-col-val">15 000</div></div>
                   </div>
                 </div>
-                <div className="price-row">
-                  <div className="price-row-single">
-                    <span className="price-row-name" style={{marginBottom:0}}>{lang === 'en' ? 'Pickup & delivery' : 'Felvétel & szállítás'}</span>
-                    <span>4 000 HUF</span>
-                  </div>
-                </div>
-              </div>
-              <div className="discount-info" style={{marginBottom:'0.5rem'}}>
-                {lang === 'en' ? 'Shop-only services are 60% of standard delivery price.' : 'A bolti szolgáltatások az alap szállítási díj 60%-a.'}
+
               </div>
               <div className="discount-info">
                 <span>5%</span> {lang === 'en' ? 'off for 2 pairs' : 'kedvezmény 2 pártól'} · <span>10%</span> {lang === 'en' ? 'off for 3+' : 'kedvezmény 3+-tól'}
